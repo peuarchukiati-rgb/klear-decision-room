@@ -8,3 +8,5 @@
 - Began Phase 1 only: schema, persistence, neutral demo data, and minimal case API.
 - Tagged disclosure-only baseline as `build-week-baseline`.
 - Verified Phase 1 with `npm test`.
+- Began Phase 2 only: deterministic invoice normalization, evidence creation, configurable finance rules, and API review action.
+- Added tests for clean, duplicate, bank mismatch, missing vendor, missing supporting evidence, rule citation discipline, and API deterministic review.

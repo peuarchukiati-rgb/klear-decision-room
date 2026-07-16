@@ -2,25 +2,31 @@
   {
     "scenario_id": "SCN-CLEAN",
     "name": "Clean invoice",
-    "expected_phase_1_status": "DRAFT",
-    "notes": "Phase 1 stores this case without running rules."
+    "expected_phase_2_status": "READY_FOR_DECISION",
+    "notes": "All configured deterministic rules pass or are not applicable."
   },
   {
     "scenario_id": "SCN-DUPLICATE",
     "name": "Duplicate invoice",
-    "expected_phase_1_status": "DRAFT",
-    "notes": "Duplicate detection is deferred to Phase 2."
+    "expected_phase_2_status": "EVIDENCE_REQUIRED",
+    "notes": "Duplicate and previous-payment rules fail against the paid ledger."
   },
   {
     "scenario_id": "SCN-BANK-MISMATCH",
     "name": "Vendor bank-account mismatch",
-    "expected_phase_1_status": "DRAFT",
-    "notes": "Bank-account validation is deferred to Phase 2."
+    "expected_phase_2_status": "EVIDENCE_REQUIRED",
+    "notes": "Submitted bank account differs from approved vendor master; verification is required."
   },
   {
-    "scenario_id": "SCN-MISSING-EVIDENCE",
-    "name": "Missing or insufficient evidence",
-    "expected_phase_1_status": "DRAFT",
-    "notes": "Required evidence validation is deferred to Phase 2."
+    "scenario_id": "SCN-MISSING-VENDOR",
+    "name": "Missing vendor",
+    "expected_phase_2_status": "EVIDENCE_REQUIRED",
+    "notes": "Vendor identity cannot be established from approved vendor master."
+  },
+  {
+    "scenario_id": "SCN-MISSING-SUPPORT",
+    "name": "Missing supporting evidence",
+    "expected_phase_2_status": "EVIDENCE_REQUIRED",
+    "notes": "Invoice is above the supporting-evidence threshold and has no accepted supporting document."
   }
 ]

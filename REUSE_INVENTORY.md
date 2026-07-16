@@ -34,6 +34,16 @@ This file records file-level reuse decisions before implementation. Phase 1 uses
 | `data/demo/*` | New neutral synthetic finance demo dataset. |
 | `docs/*` | New KLEAR Decision Room architecture and decision-model notes. |
 
+## Phase 2 New Files
+
+| Destination | New work description |
+| --- | --- |
+| `packages/intake/src/invoiceNormalizer.js` | New structured-input normalizer that writes facts, unknowns, and invoice-field evidence. |
+| `packages/evidence/src/evidenceFactory.js` | New stable evidence ID and evidence object helpers. |
+| `packages/rules-engine/src/financeRules.js` | New deterministic finance rules R-001 through R-007, influenced by Finance Reviewer concepts but not copied. |
+| `packages/rules-engine/src/reviewService.js` | New review orchestration that versions cases without mutating human decisions. |
+| `tests/deterministicReview.test.js` | New automated coverage for every scenario and deterministic rule behavior. |
+
 ## Current Reuse Boundary
 
 - `source_code_copied`: none

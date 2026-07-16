@@ -22,7 +22,14 @@ const decisionCase = await store.createCase({
       source_name: selected.source_name,
       received_at: new Date().toISOString(),
       payload: selected.invoice
-    }
+    },
+    ...(selected.supporting_documents || []).map((document, index) => ({
+      input_id: `INPUT-${selected.scenario_id}-SUPPORT-${index + 1}`,
+      source_type: "SUPPORTING_DOCUMENT",
+      source_name: document.source_name,
+      received_at: new Date().toISOString(),
+      payload: document
+    }))
   ]
 });
 

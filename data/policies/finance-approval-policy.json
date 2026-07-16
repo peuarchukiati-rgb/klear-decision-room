@@ -4,14 +4,41 @@
   "version": 1,
   "currency": "USD",
   "model_id_source": "KLEAR_MODEL_ID",
-  "rules_planned_for_phase_2": [
-    "R-001 duplicate invoice",
-    "R-002 vendor existence",
-    "R-003 bank-account match",
-    "R-004 amount consistency",
-    "R-005 required fields",
-    "R-006 previous payment status",
-    "R-007 supporting evidence requirement"
+  "amount_tolerance": 0.01,
+  "duplicate_match_fields": [
+    "vendor_id",
+    "invoice_number",
+    "total",
+    "invoice_date"
   ],
-  "hard_gate_note": "Hard-gate behavior is documented for later phases and not executed in Phase 1."
+  "required_invoice_fields": [
+    "invoice_number",
+    "vendor_name",
+    "vendor_id",
+    "invoice_date",
+    "due_date",
+    "currency",
+    "subtotal",
+    "tax",
+    "total",
+    "bank_name",
+    "bank_account",
+    "purchase_order"
+  ],
+  "supporting_evidence": {
+    "required_over_total": 3000,
+    "accepted_source_types": [
+      "SUPPORTING_DOCUMENT"
+    ]
+  },
+  "rules": [
+    { "rule_id": "R-001", "rule_name": "Duplicate invoice", "hard_gate": true },
+    { "rule_id": "R-002", "rule_name": "Vendor existence", "hard_gate": true },
+    { "rule_id": "R-003", "rule_name": "Vendor bank-account match", "hard_gate": true },
+    { "rule_id": "R-004", "rule_name": "Amount consistency", "hard_gate": false },
+    { "rule_id": "R-005", "rule_name": "Required fields", "hard_gate": false },
+    { "rule_id": "R-006", "rule_name": "Previous payment status", "hard_gate": true },
+    { "rule_id": "R-007", "rule_name": "Supporting evidence requirement", "hard_gate": false }
+  ],
+  "fraud_language_note": "Bank-account mismatches must be described as verification required, not fraud."
 }

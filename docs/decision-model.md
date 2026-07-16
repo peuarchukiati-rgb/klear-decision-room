@@ -16,4 +16,4 @@ Every meaningful change creates a new case version through the store's version o
 - human decision
 - history events
 
-Phase 1 does not decide whether a case should pass or fail. It only preserves state so later deterministic and AI layers have a stable substrate.
+Phase 2 deterministic review writes normalized facts, evidence, unknowns, and rule results onto the case. It may update case status based on deterministic review state, but it must not mutate `human_decision`.

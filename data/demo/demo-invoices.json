@@ -51,10 +51,17 @@
       "bank_name": "Northstar Commercial",
       "bank_account": "8811111111",
       "purchase_order": "PO-70144"
-    }
+    },
+    "supporting_documents": [
+      {
+        "source_name": "nova-po-70144.pdf",
+        "document_type": "PURCHASE_ORDER",
+        "reference": "PO-70144"
+      }
+    ]
   },
   {
-    "scenario_id": "SCN-MISSING-EVIDENCE",
+    "scenario_id": "SCN-MISSING-VENDOR",
     "source_name": "unmatched-invoice-5510.pdf",
     "invoice": {
       "invoice_number": "UN-5510",
@@ -69,6 +76,26 @@
       "bank_name": "Unknown",
       "bank_account": "",
       "purchase_order": ""
-    }
+    },
+    "supporting_documents": []
+  },
+  {
+    "scenario_id": "SCN-MISSING-SUPPORT",
+    "source_name": "brightline-invoice-7812.pdf",
+    "invoice": {
+      "invoice_number": "BL-7812",
+      "vendor_name": "Brightline Logistics",
+      "vendor_id": "VEN-BRIGHT-003",
+      "invoice_date": "2026-07-15",
+      "due_date": "2026-08-14",
+      "currency": "USD",
+      "subtotal": 5600.0,
+      "tax": 448.0,
+      "total": 6048.0,
+      "bank_name": "Civic Trust Bank",
+      "bank_account": "4450192207",
+      "purchase_order": "PO-70201"
+    },
+    "supporting_documents": []
   }
 ]

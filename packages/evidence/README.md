@@ -1,3 +1,3 @@
 # Evidence
 
-Deferred until Phase 2. This package will manage claim-to-evidence tracing.
+Creates stable evidence objects with source metadata for deterministic review.

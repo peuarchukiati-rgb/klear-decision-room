@@ -1,3 +1,3 @@
 # Intake
 
-Deferred until Phase 2. This package will normalize invoice, vendor, ledger, and supporting evidence inputs.
+Normalizes structured invoice input into `DecisionCase` facts, unknowns, and invoice-field evidence.

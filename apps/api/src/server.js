@@ -2,6 +2,7 @@ import http from "node:http";
 import { URL } from "node:url";
 import { CaseStore } from "../../../packages/case-store/src/caseStore.js";
 import { createHandoffArtifacts } from "../../../packages/handoff/src/handoffGenerator.js";
+import { runDeterministicReview } from "../../../packages/rules-engine/src/index.js";
 import { getModelConfig } from "../../../src/config/modelConfig.js";
 
 const PORT = Number(process.env.PORT || 8787);
@@ -47,7 +48,7 @@ export async function handleRequest(req, res, store = new CaseStore()) {
       sendJson(res, 200, {
         ok: true,
         service: "klear-decision-room-api",
-        phase: 1,
+        phase: 2,
         model_config: getModelConfig()
       });
       return;
@@ -96,6 +97,21 @@ export async function handleRequest(req, res, store = new CaseStore()) {
       sendJson(res, 201, {
         case: decisionCase,
         handoff: createHandoffArtifacts(decisionCase)
+      });
+      return;
+    }
+
+    const reviewCaseId = caseIdFromPath(pathname, "deterministic-review");
+    if (reviewCaseId && req.method === "POST") {
+      const decisionCase = await runDeterministicReview(store, reviewCaseId);
+      sendJson(res, 200, {
+        case: decisionCase,
+        deterministic_review: {
+          model_called: false,
+          rule_count: decisionCase.rule_results.length,
+          evidence_count: decisionCase.evidence.length,
+          unknown_count: decisionCase.unknowns.length
+        }
       });
       return;
     }
