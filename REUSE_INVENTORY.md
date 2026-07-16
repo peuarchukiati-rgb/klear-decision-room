@@ -44,6 +44,18 @@ This file records file-level reuse decisions before implementation. Phase 1 uses
 | `packages/rules-engine/src/reviewService.js` | New review orchestration that versions cases without mutating human decisions. |
 | `tests/deterministicReview.test.js` | New automated coverage for every scenario and deterministic rule behavior. |
 
+## Phase 3 New Files
+
+| Destination | New work description |
+| --- | --- |
+| `packages/case-writer/src/caseBriefSchema.js` | New structured case-brief JSON schema. |
+| `packages/case-writer/src/promptBuilder.js` | New grounded prompt payload builder constrained to stored case data. |
+| `packages/case-writer/src/caseBriefValidator.js` | New validator for citations, allowed recommendations, and hard-gate behavior. |
+| `packages/case-writer/src/openAiCaseWriterClient.js` | New OpenAI Responses API client using model ID from config only. |
+| `packages/case-writer/src/fallbackCaseBrief.js` | New deterministic fallback brief for no-credential demo/test operation. |
+| `packages/case-writer/src/caseWriterService.js` | New service that versions only `ai_case_brief` and preserves human decisions. |
+| `tests/caseWriter.test.js` | New tests for grounded citations, hard-gate rejection, fallback writing, and env-configured model ID. |
+
 ## Current Reuse Boundary
 
 - `source_code_copied`: none

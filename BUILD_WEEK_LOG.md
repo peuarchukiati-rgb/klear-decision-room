@@ -10,3 +10,6 @@
 - Verified Phase 1 with `npm test`.
 - Began Phase 2 only: deterministic invoice normalization, evidence creation, configurable finance rules, and API review action.
 - Added tests for clean, duplicate, bank mismatch, missing vendor, missing supporting evidence, rule citation discipline, and API deterministic review.
+- Tightened deterministic review invariant so terminal human-decision states cannot be produced by deterministic review.
+- Began Phase 3 only: grounded case writer, structured output validation, citation validation, hard-gate enforcement, fallback brief, and API case-brief action.
+- Verified Phase 3 with `npm test`.

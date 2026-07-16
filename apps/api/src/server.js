@@ -1,5 +1,6 @@
 import http from "node:http";
 import { URL } from "node:url";
+import { writeGroundedCaseBrief } from "../../../packages/case-writer/src/index.js";
 import { CaseStore } from "../../../packages/case-store/src/caseStore.js";
 import { createHandoffArtifacts } from "../../../packages/handoff/src/handoffGenerator.js";
 import { runDeterministicReview } from "../../../packages/rules-engine/src/index.js";
@@ -48,7 +49,7 @@ export async function handleRequest(req, res, store = new CaseStore()) {
       sendJson(res, 200, {
         ok: true,
         service: "klear-decision-room-api",
-        phase: 2,
+        phase: 3,
         model_config: getModelConfig()
       });
       return;
@@ -111,6 +112,19 @@ export async function handleRequest(req, res, store = new CaseStore()) {
           rule_count: decisionCase.rule_results.length,
           evidence_count: decisionCase.evidence.length,
           unknown_count: decisionCase.unknowns.length
+        }
+      });
+      return;
+    }
+
+    const caseBriefCaseId = caseIdFromPath(pathname, "case-brief");
+    if (caseBriefCaseId && req.method === "POST") {
+      const result = await writeGroundedCaseBrief(store, caseBriefCaseId);
+      sendJson(res, 200, {
+        case: result.case,
+        case_writer: {
+          mode: result.writer.mode,
+          model_called: result.writer.model_called
         }
       });
       return;

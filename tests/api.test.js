@@ -112,3 +112,68 @@ test("API runs deterministic review without changing human decision", async () =
   assert.equal(reviewed.case.rule_results.length, 7);
   assert.equal(reviewed.case.human_decision.decision, null);
 });
+
+test("API writes fallback case brief without model involvement", async () => {
+  const dataDir = await mkdtemp(path.join(os.tmpdir(), "klear-api-"));
+  const store = new CaseStore({ dataDir });
+  const createdRes = await request({
+    method: "POST",
+    url: "/cases",
+    body: {
+      input_records: [
+        {
+          input_id: "INPUT-API-BANK",
+          source_type: "INVOICE",
+          source_name: "nova-invoice-2291.pdf",
+          received_at: "2026-07-16T00:00:00.000Z",
+          payload: {
+            invoice_number: "NE-2291",
+            vendor_name: "Nova Equipment Services",
+            vendor_id: "VEN-NOVA-002",
+            invoice_date: "2026-07-10",
+            due_date: "2026-08-09",
+            currency: "USD",
+            subtotal: 3900,
+            tax: 312,
+            total: 4212,
+            bank_name: "Northstar Commercial",
+            bank_account: "8811111111",
+            purchase_order: "PO-70144"
+          }
+        },
+        {
+          input_id: "INPUT-API-BANK-SUPPORT",
+          source_type: "SUPPORTING_DOCUMENT",
+          source_name: "nova-po-70144.pdf",
+          received_at: "2026-07-16T00:00:00.000Z",
+          payload: {
+            document_type: "PURCHASE_ORDER",
+            reference: "PO-70144"
+          }
+        }
+      ]
+    },
+    store
+  });
+  const created = createdRes.json();
+
+  await request({
+    method: "POST",
+    url: `/cases/${created.case.case_id}/deterministic-review`,
+    body: {},
+    store
+  });
+
+  const briefRes = await request({
+    method: "POST",
+    url: `/cases/${created.case.case_id}/case-brief`,
+    body: {},
+    store
+  });
+
+  assert.equal(briefRes.status, 200);
+  const brief = briefRes.json();
+  assert.equal(brief.case_writer.model_called, false);
+  assert.equal(brief.case.ai_case_brief.writer_mode, "fallback");
+  assert.equal(brief.case.human_decision.decision, null);
+});

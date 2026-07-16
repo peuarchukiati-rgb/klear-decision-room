@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 import { CaseStatus, OwnerRole, createDecisionCase, createOwner } from "../packages/case-schema/src/index.js";
-import { buildReviewedCasePatch } from "../packages/rules-engine/src/index.js";
+import { assertDeterministicStatus, buildReviewedCasePatch } from "../packages/rules-engine/src/index.js";
 
 const [policy, vendor_master, paid_ledger, demoInvoices] = await Promise.all([
   readJson("data/policies/finance-approval-policy.json"),
@@ -150,4 +150,18 @@ test("all rule evidence IDs point to persisted evidence objects", () => {
       }
     }
   }
+});
+
+test("deterministic review cannot transition into human-decision states", () => {
+  for (const status of [CaseStatus.APPROVED, CaseStatus.REJECTED, CaseStatus.CLOSED]) {
+    assert.throws(() => assertDeterministicStatus(status), /human decision event/);
+  }
+});
+
+test("deterministic escalation requires explicit policy permission", () => {
+  assert.throws(() => assertDeterministicStatus(CaseStatus.ESCALATED), /allow_deterministic_escalation/);
+  assert.equal(
+    assertDeterministicStatus(CaseStatus.ESCALATED, { allow_deterministic_escalation: true }),
+    CaseStatus.ESCALATED
+  );
 });

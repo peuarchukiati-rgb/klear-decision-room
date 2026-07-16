@@ -6,6 +6,17 @@ import { runFinanceRules } from "./financeRules.js";
 const DEFAULT_POLICY_PATH = "data/policies/finance-approval-policy.json";
 const DEFAULT_VENDOR_MASTER_PATH = "data/demo/vendor-master.json";
 const DEFAULT_PAID_LEDGER_PATH = "data/demo/paid-ledger.json";
+const DETERMINISTIC_ALLOWED_STATUSES = new Set([
+  CaseStatus.UNDER_REVIEW,
+  CaseStatus.EVIDENCE_REQUIRED,
+  CaseStatus.READY_FOR_DECISION,
+  CaseStatus.ESCALATED
+]);
+const HUMAN_DECISION_STATUSES = new Set([
+  CaseStatus.APPROVED,
+  CaseStatus.REJECTED,
+  CaseStatus.CLOSED
+]);
 
 async function readJson(path) {
   return JSON.parse(await readFile(path, "utf8"));
@@ -26,9 +37,25 @@ export async function loadDefaultReviewInputs({
 
 export function deriveDeterministicStatus(ruleResults) {
   if (ruleResults.some((rule) => rule.status === "FAIL" || rule.status === "UNKNOWN")) {
-    return CaseStatus.EVIDENCE_REQUIRED;
+    return assertDeterministicStatus(CaseStatus.EVIDENCE_REQUIRED);
   }
-  return CaseStatus.READY_FOR_DECISION;
+  return assertDeterministicStatus(CaseStatus.READY_FOR_DECISION);
+}
+
+export function assertDeterministicStatus(status, policy = {}) {
+  if (HUMAN_DECISION_STATUSES.has(status)) {
+    throw new Error(`${status} requires an explicit human decision event`);
+  }
+
+  if (status === CaseStatus.ESCALATED && !policy.allow_deterministic_escalation) {
+    throw new Error("ESCALATED requires explicit policy.allow_deterministic_escalation");
+  }
+
+  if (!DETERMINISTIC_ALLOWED_STATUSES.has(status)) {
+    throw new Error(`${status} is not an allowed deterministic review transition`);
+  }
+
+  return status;
 }
 
 export function buildReviewedCasePatch(decisionCase, reviewInputs) {
