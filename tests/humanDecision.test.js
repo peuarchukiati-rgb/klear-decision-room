@@ -104,7 +104,7 @@ test("invalid human transitions require action-specific fields", async () => {
       reviewer,
       reason: "Needs a second owner."
     }),
-    /escalation target/
+    /escalation_target or next_owner/
   );
 });
 

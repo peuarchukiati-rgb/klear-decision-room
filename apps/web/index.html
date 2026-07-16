@@ -48,6 +48,16 @@
           </div>
 
           <section id="tab-review" class="tab-panel">
+            <div class="lane-banner">
+              <div class="lane ai-lane">
+                <strong>AI Prepared</strong>
+                <span>Grounded brief only. No decision authority.</span>
+              </div>
+              <div class="lane human-lane">
+                <strong>Human Decision</strong>
+                <span>Authoritative only through explicit reviewer action.</span>
+              </div>
+            </div>
             <div class="grid two">
               <article>
                 <h3>Normalized Facts</h3>
@@ -95,6 +105,10 @@
           <section id="tab-decision" class="tab-panel" hidden>
             <article>
               <h3>Human Decision</h3>
+              <div class="lane human-lane single">
+                <strong>Human Decision Is Authoritative</strong>
+                <span>Terminal states require this explicit event path.</span>
+              </div>
               <form id="decision-form" class="form">
                 <label>Action
                   <select name="action">

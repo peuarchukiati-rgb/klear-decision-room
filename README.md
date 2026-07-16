@@ -88,16 +88,16 @@ Open the reviewer console:
 http://127.0.0.1:8787/
 ```
 
-Or use the API from another shell:
+Or use the API from another shell. The seed script prints the generated `case_id`; capture it so repeated demo runs do not depend on a hardcoded number.
 
 ```bash
-node scripts/seed-demo-case.js SCN-BANK-MISMATCH
-curl -X POST http://127.0.0.1:8787/cases/CASE-2026-0001/deterministic-review
-curl -X POST http://127.0.0.1:8787/cases/CASE-2026-0001/case-brief
-curl http://127.0.0.1:8787/cases/CASE-2026-0001/readiness
-curl http://127.0.0.1:8787/cases/CASE-2026-0001/traceability
-curl http://127.0.0.1:8787/cases/CASE-2026-0001/timeline
-curl http://127.0.0.1:8787/cases/CASE-2026-0001/decision-story
+CASE_ID=$(node scripts/seed-demo-case.js SCN-BANK-MISMATCH | node -e "let s='';process.stdin.on('data',d=>s+=d);process.stdin.on('end',()=>console.log(JSON.parse(s).case_id))")
+curl -X POST http://127.0.0.1:8787/cases/$CASE_ID/deterministic-review
+curl -X POST http://127.0.0.1:8787/cases/$CASE_ID/case-brief
+curl http://127.0.0.1:8787/cases/$CASE_ID/readiness
+curl http://127.0.0.1:8787/cases/$CASE_ID/traceability
+curl http://127.0.0.1:8787/cases/$CASE_ID/timeline
+curl http://127.0.0.1:8787/cases/$CASE_ID/decision-story
 ```
 
 ## API
@@ -128,6 +128,8 @@ npm start
 The API listens on `PORT` or `8787`.
 
 The same server serves the static reviewer console at `/`.
+
+No `.env` file is required for the demo path. Without model credentials, the case writer uses a deterministic fallback so the full reviewer workflow still runs from a fresh clone.
 
 ## Tests
 

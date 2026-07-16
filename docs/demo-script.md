@@ -35,7 +35,8 @@ http://127.0.0.1:8787/
 In another shell, seed a case:
 
 ```bash
-node scripts/seed-demo-case.js SCN-BANK-MISMATCH
+CASE_ID=$(node scripts/seed-demo-case.js SCN-BANK-MISMATCH | node -e "let s='';process.stdin.on('data',d=>s+=d);process.stdin.on('end',()=>console.log(JSON.parse(s).case_id))")
+echo $CASE_ID
 ```
 
 ## Walkthrough
@@ -44,13 +45,13 @@ node scripts/seed-demo-case.js SCN-BANK-MISMATCH
 2. Run deterministic review:
 
 ```bash
-curl -X POST http://127.0.0.1:8787/cases/CASE-2026-0001/deterministic-review
+curl -X POST http://127.0.0.1:8787/cases/$CASE_ID/deterministic-review
 ```
 
 3. Prepare the grounded case brief. This works without model credentials through the deterministic fallback.
 
 ```bash
-curl -X POST http://127.0.0.1:8787/cases/CASE-2026-0001/case-brief
+curl -X POST http://127.0.0.1:8787/cases/$CASE_ID/case-brief
 ```
 
 4. Refresh the reviewer console.
@@ -64,8 +65,8 @@ curl -X POST http://127.0.0.1:8787/cases/CASE-2026-0001/case-brief
 9. Inspect Versions, Decision Story, and Timeline through the API:
 
 ```bash
-curl http://127.0.0.1:8787/cases/CASE-2026-0001/versions
-curl http://127.0.0.1:8787/cases/CASE-2026-0001/decision-story
+curl http://127.0.0.1:8787/cases/$CASE_ID/versions
+curl http://127.0.0.1:8787/cases/$CASE_ID/decision-story
 ```
 
 10. State the thesis: deterministic systems verify facts, AI prepares a grounded case, and humans own decisions through explicit events.
@@ -75,9 +76,9 @@ curl http://127.0.0.1:8787/cases/CASE-2026-0001/decision-story
 For a direct approval demo:
 
 ```bash
-node scripts/seed-demo-case.js SCN-CLEAN
-curl -X POST http://127.0.0.1:8787/cases/CASE-2026-0002/deterministic-review
-curl -X POST http://127.0.0.1:8787/cases/CASE-2026-0002/case-brief
+CLEAN_CASE_ID=$(node scripts/seed-demo-case.js SCN-CLEAN | node -e "let s='';process.stdin.on('data',d=>s+=d);process.stdin.on('end',()=>console.log(JSON.parse(s).case_id))")
+curl -X POST http://127.0.0.1:8787/cases/$CLEAN_CASE_ID/deterministic-review
+curl -X POST http://127.0.0.1:8787/cases/$CLEAN_CASE_ID/case-brief
 ```
 
 Then approve in the reviewer console and inspect the generated Decision Handoff.

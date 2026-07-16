@@ -76,7 +76,7 @@ function validateAction(decisionCase, body, policy) {
   }
 
   if (action === HumanDecision.ESCALATE) {
-    requireOwner(body.escalation_target || body.next_owner, "escalation target");
+    requireOwner(body.escalation_target || body.next_owner, "escalation_target or next_owner");
   }
 
   return { action, reviewer, reason, readiness };
