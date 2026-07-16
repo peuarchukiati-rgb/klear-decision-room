@@ -56,20 +56,31 @@ curl -X POST http://127.0.0.1:8787/cases/$CASE_ID/case-brief
 
 4. Refresh the reviewer console.
 5. Inspect normalized facts, readiness, rule results, unknowns, traceability, and Decision Timeline.
-6. Submit `REQUEST_EVIDENCE` with reviewer identity, reason, and required evidence.
-7. Open the Handoff view and inspect Markdown plus JSON. Point out:
+6. Optional live model beat: paste an OpenAI API key and the smallest model ID you can use into **Grounded Case Brief**, then click **Generate Brief**. The badge should flip from `FALLBACK (no key)` to `LIVE MODEL`.
+7. Submit `REQUEST_EVIDENCE` with reviewer identity, reason, and required evidence.
+8. Open the Handoff view and inspect Markdown plus JSON. Point out:
    - `handoff_id`
    - `generated_from_case_version`
    - `generated_from_decision_event`
-8. Open Pack Back and import the seeded return update.
-9. Inspect Versions, Decision Story, and Timeline through the API:
+9. Open Pack Back and import the seeded return update.
+10. Inspect Versions, Decision Story, and Timeline through the API:
 
 ```bash
 curl http://127.0.0.1:8787/cases/$CASE_ID/versions
 curl http://127.0.0.1:8787/cases/$CASE_ID/decision-story
 ```
 
-10. State the thesis: deterministic systems verify facts, AI prepares a grounded case, and humans own decisions through explicit events.
+11. State the thesis: deterministic systems verify facts, AI prepares a grounded case, and humans own decisions through explicit events.
+
+## Guardrail Proof Beat
+
+For the strongest judging clip, show the system refusing unsafe shortcuts:
+
+- generic API writes cannot mutate `human_decision`
+- bank mismatch cannot be approved while readiness is false
+- fake model citations are rejected before storage
+
+The model can be small and untrusted because the grounding, citation check, and human-only decision boundary are architectural.
 
 ## Optional Clean Approval Path
 

@@ -33,6 +33,32 @@ async function request({ method, url, body, store }) {
   };
 }
 
+async function requestWithOptions({ method, url, body, store, options }) {
+  const req = Readable.from(body ? [JSON.stringify(body)] : []);
+  req.method = method;
+  req.url = url;
+  req.headers = { host: "local.test", "content-type": "application/json" };
+
+  const res = {
+    statusCode: null,
+    headers: null,
+    body: "",
+    writeHead(statusCode, headers) {
+      this.statusCode = statusCode;
+      this.headers = headers;
+    },
+    end(chunk) {
+      this.body += chunk || "";
+    }
+  };
+
+  await handleRequest(req, res, store, options);
+  return {
+    status: res.statusCode,
+    json: () => JSON.parse(res.body)
+  };
+}
+
 test("minimal API creates and versions a case", async () => {
   const dataDir = await mkdtemp(path.join(os.tmpdir(), "klear-api-"));
   const store = new CaseStore({ dataDir });
@@ -177,6 +203,104 @@ test("API writes fallback case brief without model involvement", async () => {
   assert.equal(brief.case_writer.model_called, false);
   assert.equal(brief.case.ai_case_brief.writer_mode, "fallback");
   assert.equal(brief.case.human_decision.decision, null);
+});
+
+test("API writes live case brief from per-request key and does not persist the key", async () => {
+  const dataDir = await mkdtemp(path.join(os.tmpdir(), "klear-api-"));
+  const store = new CaseStore({ dataDir });
+  const createdRes = await request({
+    method: "POST",
+    url: "/cases",
+    body: {
+      input_records: [
+        {
+          input_id: "INPUT-API-LIVE",
+          source_type: "INVOICE",
+          source_name: "atlas-invoice-88904.pdf",
+          received_at: "2026-07-16T00:00:00.000Z",
+          payload: {
+            invoice_number: "INV-88904",
+            vendor_name: "Atlas Office Supply",
+            vendor_id: "VEN-ATLAS-001",
+            invoice_date: "2026-07-12",
+            due_date: "2026-08-11",
+            currency: "USD",
+            subtotal: 1240,
+            tax: 99.2,
+            total: 1339.2,
+            bank_name: "First Harbor Bank",
+            bank_account: "1002458891",
+            purchase_order: "PO-70018"
+          }
+        }
+      ]
+    },
+    store
+  });
+  const caseId = createdRes.json().case.case_id;
+  const reviewedRes = await request({
+    method: "POST",
+    url: `/cases/${caseId}/deterministic-review`,
+    body: {},
+    store
+  });
+  const reviewed = reviewedRes.json().case;
+  const evidenceId = reviewed.evidence[0].evidence_id;
+  const ruleId = reviewed.rule_results[0].rule_id;
+  const liveKey = "test-live-model-key";
+
+  const fetchImpl = async (_url, options) => {
+    assert.equal(options.headers.authorization, `Bearer ${liveKey}`);
+    const requestBody = JSON.parse(options.body);
+    assert.equal(requestBody.model, "smallest-test-model");
+    return {
+      ok: true,
+      status: 200,
+      json: async () => ({
+        output_text: JSON.stringify({
+          factual_summary: "Live model summary grounded in stored case evidence.",
+          decision_context: "The model writes only the brief.",
+          risk_explanation: "No deterministic blocking rule is present.",
+          recommended_disposition: "APPROVE",
+          recommendation_reason: "All hard-gate checks passed.",
+          missing_information_request: "",
+          next_owner_handoff: "Reviewer may proceed to the human decision gate.",
+          citations: [
+            {
+              claim: "Stored evidence supports the clean invoice review.",
+              evidence_ids: [evidenceId],
+              rule_ids: [ruleId]
+            }
+          ],
+          model_warnings: []
+        })
+      }),
+      text: async () => ""
+    };
+  };
+
+  const briefRes = await requestWithOptions({
+    method: "POST",
+    url: `/cases/${caseId}/case-brief`,
+    body: {
+      api_key: liveKey,
+      model_id: "smallest-test-model"
+    },
+    store,
+    options: { fetchImpl }
+  });
+
+  assert.equal(briefRes.status, 200);
+  const brief = briefRes.json();
+  assert.equal(brief.case_writer.model_called, true);
+  assert.equal(brief.case_writer.model_id, "smallest-test-model");
+  assert.equal(brief.case.ai_case_brief.writer_mode, "model");
+
+  const persisted = await store.getCase(caseId);
+  const persistedText = JSON.stringify(persisted);
+  const versionsText = JSON.stringify(await store.listVersions(caseId));
+  assert.equal(persistedText.includes(liveKey), false);
+  assert.equal(versionsText.includes(liveKey), false);
 });
 
 test("API exposes readiness, traceability, and timeline projections", async () => {

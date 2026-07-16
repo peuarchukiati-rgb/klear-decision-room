@@ -89,7 +89,7 @@ function assertNoHumanDecisionBypass(patch = {}) {
   }
 }
 
-export async function handleRequest(req, res, store = new CaseStore()) {
+export async function handleRequest(req, res, store = new CaseStore(), { fetchImpl } = {}) {
   const url = new URL(req.url, `http://${req.headers.host || "localhost"}`);
   const pathname = url.pathname;
 
@@ -214,12 +214,19 @@ export async function handleRequest(req, res, store = new CaseStore()) {
 
     const caseBriefCaseId = caseIdFromPath(pathname, "case-brief");
     if (caseBriefCaseId && req.method === "POST") {
-      const result = await writeGroundedCaseBrief(store, caseBriefCaseId);
+      const body = await readJson(req);
+      const env = {
+        ...process.env,
+        OPENAI_API_KEY: body.api_key || process.env.OPENAI_API_KEY,
+        KLEAR_MODEL_ID: body.model_id || process.env.KLEAR_MODEL_ID
+      };
+      const result = await writeGroundedCaseBrief(store, caseBriefCaseId, { env, fetchImpl });
       sendJson(res, 200, {
         case: result.case,
         case_writer: {
           mode: result.writer.mode,
-          model_called: result.writer.model_called
+          model_called: result.writer.model_called,
+          model_id: result.case.ai_case_brief.model_id || null
         }
       });
       return;

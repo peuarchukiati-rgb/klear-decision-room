@@ -13,13 +13,18 @@ test("static reviewer UI exposes Phase 4 operational panels", async () => {
     "Decision Timeline",
     "Human Decision",
     "Decision Handoff",
-    "Pack Back"
+    "Pack Back",
+    "API Key",
+    "Model ID"
   ]) {
     assert.ok(html.includes(label), `UI includes ${label}`);
   }
 
   assert.ok(js.includes("/decision-story"));
+  assert.ok(js.includes("/case-brief"));
   assert.ok(js.includes("/decisions"));
   assert.ok(js.includes("/pack-back"));
+  assert.ok(js.includes("LIVE MODEL"));
+  assert.ok(js.includes("beforeunload"));
   assert.ok(js.includes("confirm("));
 });

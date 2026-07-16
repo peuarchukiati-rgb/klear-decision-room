@@ -1,5 +1,9 @@
 let selectedCaseId = null;
 let currentStory = null;
+let liveModelCredentials = {
+  api_key: "",
+  model_id: ""
+};
 
 async function api(path, options = {}) {
   const response = await fetch(path, {
@@ -97,6 +101,7 @@ function renderCase(story) {
     ? `Latest human decision: ${decisionCase.human_decision.decision}\n${decisionCase.human_decision.reason || ""}`
     : "No human decision recorded yet.";
   const aiBrief = decisionCase.ai_case_brief || {};
+  renderCaseWriterBadge(aiBrief);
   el("case-brief").textContent = [
     aiBrief.summary ? `Summary: ${aiBrief.summary}` : "No grounded case brief prepared yet.",
     aiBrief.risk_explanation ? `Risk: ${aiBrief.risk_explanation}` : "",
@@ -110,6 +115,17 @@ function renderCase(story) {
   renderTimeline(story.timeline);
   renderHandoff(story.latest_handoff);
   seedPackBack(story);
+}
+
+function renderCaseWriterBadge(aiBrief = {}) {
+  const badge = el("case-writer-badge");
+  if (aiBrief.writer_mode === "model") {
+    badge.textContent = `LIVE MODEL: ${aiBrief.model_id || "configured model"}`;
+    badge.className = "pill ready";
+  } else {
+    badge.textContent = aiBrief.writer_mode === "fallback" ? "FALLBACK (no key)" : "NO BRIEF";
+    badge.className = "pill";
+  }
 }
 
 function renderTraceability(traceability) {
@@ -167,6 +183,41 @@ document.querySelectorAll(".tabs button").forEach((button) => {
 });
 
 el("refresh").addEventListener("click", loadCases);
+window.addEventListener("beforeunload", () => {
+  liveModelCredentials = { api_key: "", model_id: "" };
+});
+
+el("clear-model-key").addEventListener("click", () => {
+  liveModelCredentials = { api_key: "", model_id: "" };
+  el("case-brief-form").api_key.value = "";
+});
+
+el("case-brief-form").addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const form = event.currentTarget;
+  liveModelCredentials = {
+    api_key: form.api_key.value,
+    model_id: form.model_id.value
+  };
+  const payload = {};
+  if (liveModelCredentials.api_key) payload.api_key = liveModelCredentials.api_key;
+  if (liveModelCredentials.model_id) payload.model_id = liveModelCredentials.model_id;
+
+  try {
+    const result = await api(`/cases/${selectedCaseId}/case-brief`, {
+      method: "POST",
+      body: JSON.stringify(payload)
+    });
+    el("case-brief-result").textContent = result.case_writer.model_called
+      ? `LIVE MODEL generated brief with ${result.case_writer.model_id}.`
+      : "Fallback brief generated without a model call.";
+    await selectCase(selectedCaseId);
+    await loadCases();
+  } catch (error) {
+    el("case-brief-result").textContent = error.message;
+  }
+});
+
 el("copy-handoff").addEventListener("click", async () => {
   await navigator.clipboard.writeText(el("handoff-markdown").textContent);
 });

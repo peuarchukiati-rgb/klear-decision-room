@@ -6,6 +6,7 @@ It supports the Phase 4 operational workflow:
 
 - Case Inbox
 - Case Review
+- Bring-your-own-key live model brief generation
 - Evidence traceability
 - Decision Timeline
 - Explicit human decision controls

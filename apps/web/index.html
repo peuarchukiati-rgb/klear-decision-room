@@ -69,8 +69,25 @@
               </article>
             </div>
             <article>
-              <h3>Grounded Case Brief</h3>
+              <div class="section-head">
+                <h3>Grounded Case Brief</h3>
+                <span id="case-writer-badge" class="pill">FALLBACK (no key)</span>
+              </div>
+              <form id="case-brief-form" class="form compact-form">
+                <label>API Key
+                  <input name="api_key" type="password" autocomplete="off" placeholder="Optional local-only key">
+                </label>
+                <label>Model ID
+                  <input name="model_id" placeholder="Use your smallest model to prove the guardrails hold">
+                </label>
+                <div class="button-row">
+                  <button type="submit">Generate Brief</button>
+                  <button type="button" id="clear-model-key">Clear Key</button>
+                </div>
+              </form>
+              <p class="meta">Key is sent only to the local API for this request and is never stored in the case.</p>
               <div id="case-brief" class="brief"></div>
+              <pre id="case-brief-result"></pre>
             </article>
             <article>
               <h3>Rule Results</h3>

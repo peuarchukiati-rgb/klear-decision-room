@@ -242,6 +242,19 @@ dd {
   max-width: 720px;
 }
 
+.compact-form {
+  grid-template-columns: minmax(180px, 1fr) minmax(180px, 1fr) auto;
+  align-items: end;
+  max-width: none;
+  margin-bottom: 8px;
+}
+
+.button-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
 label {
   display: grid;
   gap: 6px;
@@ -274,7 +287,7 @@ pre {
 }
 
 @media (max-width: 900px) {
-  .layout, .grid.two, .lane-banner {
+  .layout, .grid.two, .lane-banner, .compact-form {
     grid-template-columns: 1fr;
   }
 

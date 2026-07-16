@@ -131,6 +131,18 @@ The same server serves the static reviewer console at `/`.
 
 No `.env` file is required for the demo path. Without model credentials, the case writer uses a deterministic fallback so the full reviewer workflow still runs from a fresh clone.
 
+## Live Model Demo
+
+The reviewer console also supports a bring-your-own-key live model run for judges who want to see the grounded case writer call a model without restarting the server.
+
+1. Open `http://127.0.0.1:8787/`.
+2. Select a reviewed case.
+3. In **Grounded Case Brief**, paste an OpenAI API key and a `Model ID`.
+4. Use the smallest suitable model to prove the architecture, not model size, carries the trust boundary.
+5. Click **Generate Brief** and watch the badge change from `FALLBACK (no key)` to `LIVE MODEL`.
+
+The key is sent only from the browser to the local API for that one request. It is not stored in `DecisionCase`, version snapshots, handoff artifacts, history, or any file under `storage/`. This is a localhost demo convenience, not a hosted secret-management flow.
+
 ## Tests
 
 ```bash
@@ -144,6 +156,8 @@ The tests cover deterministic rules, evidence citation integrity, model-output v
 Deterministic review never calls a model.
 
 The case writer calls a model only when both `OPENAI_API_KEY` and `KLEAR_MODEL_ID` are configured. Without credentials, it produces a deterministic fallback brief so judges can run the project from a fresh clone.
+
+For the reviewer console, those same credentials can be supplied per request through the masked API-key field and model-id field. Per-request credentials are discarded after the request.
 
 Model identifiers must come from environment or config and must not be hardcoded in source.
 
