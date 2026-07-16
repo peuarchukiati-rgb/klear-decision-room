@@ -1,0 +1,26 @@
+[
+  {
+    "vendor_id": "VEN-ATLAS-001",
+    "vendor_name": "Atlas Office Supply",
+    "status": "APPROVED",
+    "bank_name": "First Harbor Bank",
+    "bank_account": "1002458891",
+    "default_currency": "USD"
+  },
+  {
+    "vendor_id": "VEN-NOVA-002",
+    "vendor_name": "Nova Equipment Services",
+    "status": "APPROVED",
+    "bank_name": "Northstar Commercial",
+    "bank_account": "8820143370",
+    "default_currency": "USD"
+  },
+  {
+    "vendor_id": "VEN-BRIGHT-003",
+    "vendor_name": "Brightline Logistics",
+    "status": "APPROVED",
+    "bank_name": "Civic Trust Bank",
+    "bank_account": "4450192207",
+    "default_currency": "USD"
+  }
+]

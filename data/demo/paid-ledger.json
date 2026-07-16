@@ -1,0 +1,32 @@
+[
+  {
+    "payment_id": "PAY-2026-00418",
+    "vendor_id": "VEN-ATLAS-001",
+    "invoice_number": "INV-88421",
+    "invoice_date": "2026-06-20",
+    "total": 1480.25,
+    "currency": "USD",
+    "paid_at": "2026-07-02T15:30:00.000Z",
+    "status": "PAID"
+  },
+  {
+    "payment_id": "PAY-2026-00429",
+    "vendor_id": "VEN-BRIGHT-003",
+    "invoice_number": "BL-7781",
+    "invoice_date": "2026-06-18",
+    "total": 6420.0,
+    "currency": "USD",
+    "paid_at": "2026-07-03T13:05:00.000Z",
+    "status": "PAID"
+  },
+  {
+    "payment_id": "PAY-2026-00437",
+    "vendor_id": "VEN-NOVA-002",
+    "invoice_number": "NE-2208",
+    "invoice_date": "2026-06-28",
+    "total": 2210.4,
+    "currency": "USD",
+    "paid_at": "2026-07-05T18:15:00.000Z",
+    "status": "PAID"
+  }
+]

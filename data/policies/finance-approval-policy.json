@@ -1,0 +1,17 @@
+{
+  "policy_id": "POL-FINANCE-APPROVAL-DEMO",
+  "name": "Finance approval demo policy",
+  "version": 1,
+  "currency": "USD",
+  "model_id_source": "KLEAR_MODEL_ID",
+  "rules_planned_for_phase_2": [
+    "R-001 duplicate invoice",
+    "R-002 vendor existence",
+    "R-003 bank-account match",
+    "R-004 amount consistency",
+    "R-005 required fields",
+    "R-006 previous payment status",
+    "R-007 supporting evidence requirement"
+  ],
+  "hard_gate_note": "Hard-gate behavior is documented for later phases and not executed in Phase 1."
+}

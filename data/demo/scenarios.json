@@ -1,0 +1,26 @@
+[
+  {
+    "scenario_id": "SCN-CLEAN",
+    "name": "Clean invoice",
+    "expected_phase_1_status": "DRAFT",
+    "notes": "Phase 1 stores this case without running rules."
+  },
+  {
+    "scenario_id": "SCN-DUPLICATE",
+    "name": "Duplicate invoice",
+    "expected_phase_1_status": "DRAFT",
+    "notes": "Duplicate detection is deferred to Phase 2."
+  },
+  {
+    "scenario_id": "SCN-BANK-MISMATCH",
+    "name": "Vendor bank-account mismatch",
+    "expected_phase_1_status": "DRAFT",
+    "notes": "Bank-account validation is deferred to Phase 2."
+  },
+  {
+    "scenario_id": "SCN-MISSING-EVIDENCE",
+    "name": "Missing or insufficient evidence",
+    "expected_phase_1_status": "DRAFT",
+    "notes": "Required evidence validation is deferred to Phase 2."
+  }
+]

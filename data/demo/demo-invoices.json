@@ -1,0 +1,74 @@
+[
+  {
+    "scenario_id": "SCN-CLEAN",
+    "source_name": "atlas-invoice-88904.pdf",
+    "invoice": {
+      "invoice_number": "INV-88904",
+      "vendor_name": "Atlas Office Supply",
+      "vendor_id": "VEN-ATLAS-001",
+      "invoice_date": "2026-07-12",
+      "due_date": "2026-08-11",
+      "currency": "USD",
+      "subtotal": 1240.0,
+      "tax": 99.2,
+      "total": 1339.2,
+      "bank_name": "First Harbor Bank",
+      "bank_account": "1002458891",
+      "purchase_order": "PO-70018"
+    }
+  },
+  {
+    "scenario_id": "SCN-DUPLICATE",
+    "source_name": "atlas-invoice-88421-resubmitted.pdf",
+    "invoice": {
+      "invoice_number": "INV-88421",
+      "vendor_name": "Atlas Office Supply",
+      "vendor_id": "VEN-ATLAS-001",
+      "invoice_date": "2026-06-20",
+      "due_date": "2026-07-20",
+      "currency": "USD",
+      "subtotal": 1370.6,
+      "tax": 109.65,
+      "total": 1480.25,
+      "bank_name": "First Harbor Bank",
+      "bank_account": "1002458891",
+      "purchase_order": "PO-69704"
+    }
+  },
+  {
+    "scenario_id": "SCN-BANK-MISMATCH",
+    "source_name": "nova-invoice-2291.pdf",
+    "invoice": {
+      "invoice_number": "NE-2291",
+      "vendor_name": "Nova Equipment Services",
+      "vendor_id": "VEN-NOVA-002",
+      "invoice_date": "2026-07-10",
+      "due_date": "2026-08-09",
+      "currency": "USD",
+      "subtotal": 3900.0,
+      "tax": 312.0,
+      "total": 4212.0,
+      "bank_name": "Northstar Commercial",
+      "bank_account": "8811111111",
+      "purchase_order": "PO-70144"
+    }
+  },
+  {
+    "scenario_id": "SCN-MISSING-EVIDENCE",
+    "source_name": "unmatched-invoice-5510.pdf",
+    "invoice": {
+      "invoice_number": "UN-5510",
+      "vendor_name": "Unmatched Field Services",
+      "vendor_id": "",
+      "invoice_date": "2026-07-14",
+      "due_date": "",
+      "currency": "USD",
+      "subtotal": 2500.0,
+      "tax": null,
+      "total": 2700.0,
+      "bank_name": "Unknown",
+      "bank_account": "",
+      "purchase_order": ""
+    }
+  }
+]
