@@ -21,3 +21,11 @@ Phase 2 deterministic review writes normalized facts, evidence, unknowns, and ru
 Deterministic review may transition cases only into workflow-readiness states. `APPROVED`, `REJECTED`, and `CLOSED` require an explicit human decision event.
 
 Phase 3 writes only `ai_case_brief`. The case writer may summarize, explain, recommend, request missing information, and draft handoff notes. It must not alter deterministic rule results or human decisions.
+
+Phase 3.5 adds derived projections over the case:
+
+- case readiness, which is deterministic case completeness rather than model confidence
+- traceability map, which links rule results to evidence and evidence back to rules
+- decision timeline, which renders `history` as judge-readable events
+
+These projections are calculated from current case state and are not persisted as new core fields.

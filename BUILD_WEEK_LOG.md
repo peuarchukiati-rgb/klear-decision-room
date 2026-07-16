@@ -13,3 +13,4 @@
 - Tightened deterministic review invariant so terminal human-decision states cannot be produced by deterministic review.
 - Began Phase 3 only: grounded case writer, structured output validation, citation validation, hard-gate enforcement, fallback brief, and API case-brief action.
 - Verified Phase 3 with `npm test`.
+- Added pre-Phase 4 hardening: product-first README, case readiness, traceability map, decision timeline, and stricter human-decision immutability tests.

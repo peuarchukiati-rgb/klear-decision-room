@@ -7,6 +7,7 @@ import { CaseStore } from "../packages/case-store/src/caseStore.js";
 import { OwnerRole, createOwner } from "../packages/case-schema/src/index.js";
 import { callOpenAiCaseWriter, validateCaseBriefOutput, writeGroundedCaseBrief } from "../packages/case-writer/src/index.js";
 import { runDeterministicReview } from "../packages/rules-engine/src/index.js";
+import { assertHumanDecisionUnchanged } from "./helpers/assertions.js";
 
 const demoInvoices = await readJson("data/demo/demo-invoices.json");
 
@@ -99,7 +100,7 @@ test("fallback case writer stores grounded citations and preserves human decisio
   assert.equal(written.writer.mode, "fallback");
   assert.equal(written.writer.model_called, false);
   assert.equal(written.case.version, 3);
-  assert.equal(written.case.human_decision.decision, null);
+  assertHumanDecisionUnchanged(decisionCase, written.case);
   assert.equal(written.case.ai_case_brief.writer_mode, "fallback");
   assert.ok(written.case.ai_case_brief.citations[0].rule_ids.length > 0);
   assert.ok(written.case.ai_case_brief.model_warnings.includes("FALLBACK_TEMPLATE_USED"));
@@ -115,7 +116,25 @@ test("provided model output is validated before storing", async () => {
 
   assert.equal(written.writer.mode, "provided_output");
   assert.equal(written.case.ai_case_brief.recommended_disposition, "REQUEST_EVIDENCE");
-  assert.equal(written.case.human_decision.decision, null);
+  assertHumanDecisionUnchanged(decisionCase, written.case);
+});
+
+test("case writer rejects model output attempting to mutate human decision", async () => {
+  const { decisionCase } = await reviewedCase("SCN-DUPLICATE");
+  const output = {
+    ...validOutputFor(decisionCase),
+    human_decision: {
+      decision: "APPROVE",
+      decided_by: "AI",
+      decided_at: "2026-07-16T00:00:00.000Z",
+      reason: "not allowed"
+    }
+  };
+
+  assert.throws(
+    () => validateCaseBriefOutput(decisionCase, output),
+    /MODEL_OUTPUT_REJECTED.*unsupported field: human_decision/
+  );
 });
 
 test("OpenAI client sends configured model id without source hardcoding", async () => {

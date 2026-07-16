@@ -1,5 +1,11 @@
 import http from "node:http";
 import { URL } from "node:url";
+import {
+  deriveCaseReadiness,
+  deriveDecisionTimeline,
+  deriveTraceabilityMap,
+  loadReadinessPolicy
+} from "../../../packages/case-insights/src/index.js";
 import { writeGroundedCaseBrief } from "../../../packages/case-writer/src/index.js";
 import { CaseStore } from "../../../packages/case-store/src/caseStore.js";
 import { createHandoffArtifacts } from "../../../packages/handoff/src/handoffGenerator.js";
@@ -105,13 +111,15 @@ export async function handleRequest(req, res, store = new CaseStore()) {
     const reviewCaseId = caseIdFromPath(pathname, "deterministic-review");
     if (reviewCaseId && req.method === "POST") {
       const decisionCase = await runDeterministicReview(store, reviewCaseId);
+      const policy = await loadReadinessPolicy();
       sendJson(res, 200, {
         case: decisionCase,
         deterministic_review: {
           model_called: false,
           rule_count: decisionCase.rule_results.length,
           evidence_count: decisionCase.evidence.length,
-          unknown_count: decisionCase.unknowns.length
+          unknown_count: decisionCase.unknowns.length,
+          readiness: deriveCaseReadiness(decisionCase, policy)
         }
       });
       return;
@@ -127,6 +135,28 @@ export async function handleRequest(req, res, store = new CaseStore()) {
           model_called: result.writer.model_called
         }
       });
+      return;
+    }
+
+    const readinessCaseId = caseIdFromPath(pathname, "readiness");
+    if (readinessCaseId && req.method === "GET") {
+      const decisionCase = await store.getCase(readinessCaseId);
+      const policy = await loadReadinessPolicy();
+      sendJson(res, 200, { readiness: deriveCaseReadiness(decisionCase, policy) });
+      return;
+    }
+
+    const traceabilityCaseId = caseIdFromPath(pathname, "traceability");
+    if (traceabilityCaseId && req.method === "GET") {
+      const decisionCase = await store.getCase(traceabilityCaseId);
+      sendJson(res, 200, { traceability: deriveTraceabilityMap(decisionCase) });
+      return;
+    }
+
+    const timelineCaseId = caseIdFromPath(pathname, "timeline");
+    if (timelineCaseId && req.method === "GET") {
+      const decisionCase = await store.getCase(timelineCaseId);
+      sendJson(res, 200, { timeline: deriveDecisionTimeline(decisionCase) });
       return;
     }
 

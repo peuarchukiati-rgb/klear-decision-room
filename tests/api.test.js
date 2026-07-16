@@ -108,6 +108,7 @@ test("API runs deterministic review without changing human decision", async () =
   assert.equal(reviewedRes.status, 200);
   const reviewed = reviewedRes.json();
   assert.equal(reviewed.deterministic_review.model_called, false);
+  assert.equal(reviewed.deterministic_review.readiness.ready_for_decision, true);
   assert.equal(reviewed.case.version, 2);
   assert.equal(reviewed.case.rule_results.length, 7);
   assert.equal(reviewed.case.human_decision.decision, null);
@@ -176,4 +177,60 @@ test("API writes fallback case brief without model involvement", async () => {
   assert.equal(brief.case_writer.model_called, false);
   assert.equal(brief.case.ai_case_brief.writer_mode, "fallback");
   assert.equal(brief.case.human_decision.decision, null);
+});
+
+test("API exposes readiness, traceability, and timeline projections", async () => {
+  const dataDir = await mkdtemp(path.join(os.tmpdir(), "klear-api-"));
+  const store = new CaseStore({ dataDir });
+  const createdRes = await request({
+    method: "POST",
+    url: "/cases",
+    body: {
+      input_records: [
+        {
+          input_id: "INPUT-API-DUP",
+          source_type: "INVOICE",
+          source_name: "atlas-invoice-88421-resubmitted.pdf",
+          received_at: "2026-07-16T00:00:00.000Z",
+          payload: {
+            invoice_number: "INV-88421",
+            vendor_name: "Atlas Office Supply",
+            vendor_id: "VEN-ATLAS-001",
+            invoice_date: "2026-06-20",
+            due_date: "2026-07-20",
+            currency: "USD",
+            subtotal: 1370.6,
+            tax: 109.65,
+            total: 1480.25,
+            bank_name: "First Harbor Bank",
+            bank_account: "1002458891",
+            purchase_order: "PO-69704"
+          }
+        }
+      ]
+    },
+    store
+  });
+  const caseId = createdRes.json().case.case_id;
+
+  await request({
+    method: "POST",
+    url: `/cases/${caseId}/deterministic-review`,
+    body: {},
+    store
+  });
+
+  const readinessRes = await request({ method: "GET", url: `/cases/${caseId}/readiness`, store });
+  const traceabilityRes = await request({ method: "GET", url: `/cases/${caseId}/traceability`, store });
+  const timelineRes = await request({ method: "GET", url: `/cases/${caseId}/timeline`, store });
+
+  assert.equal(readinessRes.status, 200);
+  assert.equal(readinessRes.json().readiness.ready_for_decision, false);
+  assert.equal(traceabilityRes.status, 200);
+  assert.ok(traceabilityRes.json().traceability.rules.some((rule) => rule.rule_id === "R-001"));
+  assert.equal(timelineRes.status, 200);
+  assert.deepEqual(
+    timelineRes.json().timeline.events.map((event) => event.label),
+    ["Case created", "Deterministic review completed"]
+  );
 });

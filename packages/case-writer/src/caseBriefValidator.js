@@ -24,6 +24,12 @@ export function validateCaseBriefOutput(decisionCase, output) {
     }
   }
 
+  for (const field of Object.keys(output)) {
+    if (!REQUIRED_FIELDS.includes(field)) {
+      errors.push(`unsupported field: ${field}`);
+    }
+  }
+
   if (!Array.isArray(output.citations)) {
     errors.push("citations must be an array");
   }

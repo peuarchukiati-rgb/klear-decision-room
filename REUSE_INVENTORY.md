@@ -56,6 +56,16 @@ This file records file-level reuse decisions before implementation. Phase 1 uses
 | `packages/case-writer/src/caseWriterService.js` | New service that versions only `ai_case_brief` and preserves human decisions. |
 | `tests/caseWriter.test.js` | New tests for grounded citations, hard-gate rejection, fallback writing, and env-configured model ID. |
 
+## Phase 3.5 New Files
+
+| Destination | New work description |
+| --- | --- |
+| `packages/case-insights/src/readiness.js` | New derived case readiness calculation from current case state and policy. |
+| `packages/case-insights/src/traceability.js` | New lightweight rule/evidence traceability projection. |
+| `packages/case-insights/src/timeline.js` | New decision timeline projection from existing case history. |
+| `tests/caseInsights.test.js` | New tests for readiness, traceability, and timeline behavior. |
+| `tests/readme.test.js` | New tests for product-first README positioning and anti-pivot wording. |
+
 ## Current Reuse Boundary
 
 - `source_code_copied`: none

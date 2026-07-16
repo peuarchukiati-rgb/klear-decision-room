@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "KLEAR Decision Room Phase 1: persistent decision cases, neutral demo data, and minimal case API.",
+  "description": "KLEAR Decision Room: evidence-first decision infrastructure for human-AI workflows.",
   "scripts": {
     "start": "node apps/api/src/server.js",
     "dev": "node apps/api/src/server.js",

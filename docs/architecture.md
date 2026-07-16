@@ -14,6 +14,7 @@ KLEAR Decision Room separates the system into three lanes:
 - `packages/evidence`: stable evidence object creation.
 - `packages/rules-engine`: deterministic finance approval review.
 - `packages/case-writer`: grounded case brief prompt construction, structured output schema, validator, OpenAI Responses API client, and fallback writer.
+- `packages/case-insights`: derived readiness, traceability, and decision timeline projections for judge-facing inspection and future UI rendering.
 - `packages/handoff`: minimal human and machine handoff artifact generation.
 - `apps/api`: HTTP API over the case store.
 - `data/demo`: neutral synthetic finance data.

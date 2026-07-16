@@ -2,7 +2,12 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 import { CaseStatus, OwnerRole, createDecisionCase, createOwner } from "../packages/case-schema/src/index.js";
-import { assertDeterministicStatus, buildReviewedCasePatch } from "../packages/rules-engine/src/index.js";
+import { assertDeterministicStatus, buildReviewedCasePatch, runDeterministicReview } from "../packages/rules-engine/src/index.js";
+import { CaseStore } from "../packages/case-store/src/caseStore.js";
+import { mkdtemp } from "node:fs/promises";
+import os from "node:os";
+import path from "node:path";
+import { assertHumanDecisionUnchanged } from "./helpers/assertions.js";
 
 const [policy, vendor_master, paid_ledger, demoInvoices] = await Promise.all([
   readJson("data/policies/finance-approval-policy.json"),
@@ -164,4 +169,20 @@ test("deterministic escalation requires explicit policy permission", () => {
     assertDeterministicStatus(CaseStatus.ESCALATED, { allow_deterministic_escalation: true }),
     CaseStatus.ESCALATED
   );
+});
+
+test("deterministic review preserves existing human decision state", async () => {
+  const dataDir = await mkdtemp(path.join(os.tmpdir(), "klear-review-"));
+  const store = new CaseStore({ dataDir });
+  const created = await store.createCase({
+    ...caseForScenario("SCN-CLEAN"),
+    human_decision: {
+      decision: null,
+      decided_by: null,
+      decided_at: null,
+      reason: "reserved for explicit human event"
+    }
+  });
+  const reviewed = await runDeterministicReview(store, created.case_id);
+  assertHumanDecisionUnchanged(created, reviewed);
 });
