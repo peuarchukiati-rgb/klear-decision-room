@@ -12,6 +12,12 @@ Most enterprise AI workflows stop at an answer. Real operational decisions need 
 
 The flagship demo is a finance approval workflow because payment review is easy to judge: duplicate invoices, bank-account mismatches, missing vendors, and missing support all require evidence-backed decisions.
 
+The cost is operational, not theoretical: duplicate payments, vendor impersonation, and rushed approvals turn messy evidence into money leaving the business.
+
+The target user is an AP controller or finance reviewer clearing many invoice decisions per day, where the hard part is not seeing one anomaly but proving what was known, unknown, cited, and decided at the moment of approval.
+
+Traditional ERP/AP systems can route approvals, but KLEAR's wedge is the portable decision record: who decided what, against which evidence version, with AI preparation kept separate from human authority.
+
 ## The Decision
 
 KLEAR Decision Room keeps each lane independently verifiable and independently replaceable:
