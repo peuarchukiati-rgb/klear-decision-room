@@ -234,3 +234,98 @@ test("API exposes readiness, traceability, and timeline projections", async () =
     ["Case created", "Deterministic review completed"]
   );
 });
+
+test("API records human decisions, exposes versions, handoff, and decision story", async () => {
+  const dataDir = await mkdtemp(path.join(os.tmpdir(), "klear-api-"));
+  const store = new CaseStore({ dataDir });
+  const createdRes = await request({
+    method: "POST",
+    url: "/cases",
+    body: {
+      input_records: [
+        {
+          input_id: "INPUT-API-CLEAN-DECISION",
+          source_type: "INVOICE",
+          source_name: "atlas-invoice-88904.pdf",
+          received_at: "2026-07-16T00:00:00.000Z",
+          payload: {
+            invoice_number: "INV-88904",
+            vendor_name: "Atlas Office Supply",
+            vendor_id: "VEN-ATLAS-001",
+            invoice_date: "2026-07-12",
+            due_date: "2026-08-11",
+            currency: "USD",
+            subtotal: 1240,
+            tax: 99.2,
+            total: 1339.2,
+            bank_name: "First Harbor Bank",
+            bank_account: "1002458891",
+            purchase_order: "PO-70018"
+          }
+        }
+      ]
+    },
+    store
+  });
+  const caseId = createdRes.json().case.case_id;
+
+  await request({ method: "POST", url: `/cases/${caseId}/deterministic-review`, body: {}, store });
+
+  const decisionRes = await request({
+    method: "POST",
+    url: `/cases/${caseId}/decisions`,
+    body: {
+      action: "APPROVE",
+      reviewer: { role: "REVIEWER", name: "API Reviewer" },
+      reason: "Case is ready for payment."
+    },
+    store
+  });
+  assert.equal(decisionRes.status, 201);
+  assert.equal(decisionRes.json().decision_event.decision_event_id, "HDEC-0001");
+
+  const versionsRes = await request({ method: "GET", url: `/cases/${caseId}/versions`, store });
+  const handoffRes = await request({ method: "GET", url: `/cases/${caseId}/handoff`, store });
+  const storyRes = await request({ method: "GET", url: `/cases/${caseId}/decision-story`, store });
+
+  assert.equal(versionsRes.status, 200);
+  assert.ok(versionsRes.json().versions.length >= 3);
+  assert.equal(handoffRes.status, 200);
+  assert.equal(handoffRes.json().handoff.machine_readable.generated_from_decision_event, "HDEC-0001");
+  assert.equal(storyRes.status, 200);
+  assert.equal(storyRes.json().decision_story.latest_decision.event.decision_event_id, "HDEC-0001");
+});
+
+test("generic API routes cannot bypass explicit human decision service", async () => {
+  const dataDir = await mkdtemp(path.join(os.tmpdir(), "klear-api-"));
+  const store = new CaseStore({ dataDir });
+  const createdRes = await request({ method: "POST", url: "/cases", body: {}, store });
+  const caseId = createdRes.json().case.case_id;
+
+  const putRes = await request({
+    method: "PUT",
+    url: `/cases/${caseId}`,
+    body: {
+      patch: {
+        human_decision: {
+          decision: "APPROVE",
+          decided_by: { role: "REVIEWER", name: "Bypass" },
+          decided_at: "2026-07-16T00:00:00.000Z",
+          reason: "Bypass"
+        }
+      }
+    },
+    store
+  });
+  const versionRes = await request({
+    method: "POST",
+    url: `/cases/${caseId}/versions`,
+    body: { patch: { status: "APPROVED" } },
+    store
+  });
+
+  assert.equal(putRes.status, 400);
+  assert.match(putRes.json().error, /POST \/cases\/:caseId\/decisions/);
+  assert.equal(versionRes.status, 400);
+  assert.match(versionRes.json().error, /requires POST/);
+});

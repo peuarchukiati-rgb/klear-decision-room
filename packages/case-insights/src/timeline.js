@@ -1,7 +1,9 @@
 const LABELS_BY_SOURCE_EVENT = {
   api: "Case saved",
   deterministic_review: "Deterministic review completed",
-  grounded_case_writer: "Grounded case brief prepared"
+  grounded_case_writer: "Grounded case brief prepared",
+  human_decision: "Human decision recorded",
+  pack_back: "Pack-back update recorded"
 };
 
 const LABELS_BY_CHANGE_TYPE = {
@@ -11,7 +13,8 @@ const LABELS_BY_CHANGE_TYPE = {
   EVIDENCE_ADDED: "Evidence added",
   STATUS_CHANGED: "Status changed",
   OWNER_CHANGED: "Owner changed",
-  HUMAN_DECISION_RECORDED: "Human decision recorded"
+  HUMAN_DECISION_RECORDED: "Human decision recorded",
+  PACK_BACK_RECORDED: "Pack-back update recorded"
 };
 
 export function labelForHistoryEvent(event) {

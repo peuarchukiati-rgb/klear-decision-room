@@ -1,7 +1,11 @@
 import http from "node:http";
+import { readFile } from "node:fs/promises";
+import path from "node:path";
 import { URL } from "node:url";
+import { fileURLToPath } from "node:url";
 import {
   deriveCaseReadiness,
+  deriveDecisionStory,
   deriveDecisionTimeline,
   deriveTraceabilityMap,
   loadReadinessPolicy
@@ -9,10 +13,14 @@ import {
 import { writeGroundedCaseBrief } from "../../../packages/case-writer/src/index.js";
 import { CaseStore } from "../../../packages/case-store/src/caseStore.js";
 import { createHandoffArtifacts } from "../../../packages/handoff/src/handoffGenerator.js";
+import { importPackBack, submitHumanDecision } from "../../../packages/human-decision/src/index.js";
 import { runDeterministicReview } from "../../../packages/rules-engine/src/index.js";
 import { getModelConfig } from "../../../src/config/modelConfig.js";
 
 const PORT = Number(process.env.PORT || 8787);
+const HUMAN_DECISION_PATCH_FIELDS = new Set(["human_decision", "human_decision_events"]);
+const TERMINAL_DECISION_STATUSES = new Set(["APPROVED", "REJECTED", "CLOSED"]);
+
 async function readJson(req) {
   const chunks = [];
   for await (const chunk of req) {
@@ -38,6 +46,30 @@ function sendError(res, statusCode, message) {
   sendJson(res, statusCode, { error: message });
 }
 
+function sendDetailedError(res, statusCode, error) {
+  sendJson(res, statusCode, { error: error.message || "Request failed", details: error.details });
+}
+
+async function sendStatic(res, pathname) {
+  const fileName = pathname === "/" ? "index.html" : pathname.slice(1);
+  if (!/^(index\.html|app\.js|styles\.css)$/.test(fileName)) {
+    return false;
+  }
+  const filePath = path.join(process.cwd(), "apps", "web", fileName);
+  const body = await readFile(filePath);
+  const type = fileName.endsWith(".js")
+    ? "application/javascript; charset=utf-8"
+    : fileName.endsWith(".css")
+      ? "text/css; charset=utf-8"
+      : "text/html; charset=utf-8";
+  res.writeHead(200, {
+    "content-type": type,
+    "cache-control": "no-store"
+  });
+  res.end(body);
+  return true;
+}
+
 function caseIdFromPath(pathname, suffix = "") {
   const pattern = suffix
     ? new RegExp(`^/cases/([^/]+)/${suffix}$`)
@@ -46,16 +78,31 @@ function caseIdFromPath(pathname, suffix = "") {
   return match ? decodeURIComponent(match[1]) : null;
 }
 
+function assertNoHumanDecisionBypass(patch = {}) {
+  for (const field of HUMAN_DECISION_PATCH_FIELDS) {
+    if (Object.prototype.hasOwnProperty.call(patch, field)) {
+      throw new Error(`${field} can only be changed through POST /cases/:caseId/decisions`);
+    }
+  }
+  if (TERMINAL_DECISION_STATUSES.has(patch.status)) {
+    throw new Error(`${patch.status} requires POST /cases/:caseId/decisions`);
+  }
+}
+
 export async function handleRequest(req, res, store = new CaseStore()) {
   const url = new URL(req.url, `http://${req.headers.host || "localhost"}`);
   const pathname = url.pathname;
 
   try {
+    if (req.method === "GET" && await sendStatic(res, pathname)) {
+      return;
+    }
+
     if (req.method === "GET" && pathname === "/health") {
       sendJson(res, 200, {
         ok: true,
         service: "klear-decision-room-api",
-        phase: 3,
+        phase: 4,
         model_config: getModelConfig()
       });
       return;
@@ -83,6 +130,7 @@ export async function handleRequest(req, res, store = new CaseStore()) {
 
     if (caseId && req.method === "PUT") {
       const body = await readJson(req);
+      assertNoHumanDecisionBypass(body.patch || body);
       const decisionCase = await store.saveCase(caseId, body.patch || body, {
         actor: body.actor,
         note: body.note,
@@ -93,8 +141,15 @@ export async function handleRequest(req, res, store = new CaseStore()) {
     }
 
     const versionCaseId = caseIdFromPath(pathname, "versions");
+    if (versionCaseId && req.method === "GET") {
+      const versions = await store.listVersions(versionCaseId);
+      sendJson(res, 200, { versions });
+      return;
+    }
+
     if (versionCaseId && req.method === "POST") {
       const body = await readJson(req);
+      assertNoHumanDecisionBypass(body.patch || {});
       const decisionCase = await store.versionCase(versionCaseId, body.patch || {}, {
         actor: body.actor,
         change_type: body.change_type,
@@ -104,6 +159,38 @@ export async function handleRequest(req, res, store = new CaseStore()) {
       sendJson(res, 201, {
         case: decisionCase,
         handoff: createHandoffArtifacts(decisionCase)
+      });
+      return;
+    }
+
+    const decisionCaseId = caseIdFromPath(pathname, "decisions");
+    if (decisionCaseId && req.method === "POST") {
+      const body = await readJson(req);
+      const result = await submitHumanDecision(store, decisionCaseId, body);
+      sendJson(res, 201, {
+        case: result.case,
+        decision_event: result.decision_event,
+        handoff: createHandoffArtifacts(result.case)
+      });
+      return;
+    }
+
+    const handoffCaseId = caseIdFromPath(pathname, "handoff");
+    if (handoffCaseId && req.method === "GET") {
+      const decisionCase = await store.getCase(handoffCaseId);
+      sendJson(res, 200, { handoff: createHandoffArtifacts(decisionCase) });
+      return;
+    }
+
+    const packBackCaseId = caseIdFromPath(pathname, "pack-back");
+    if (packBackCaseId && req.method === "POST") {
+      const body = await readJson(req);
+      const result = await importPackBack(store, packBackCaseId, body);
+      const policy = await loadReadinessPolicy();
+      sendJson(res, 201, {
+        case: result.case,
+        pack_back: result.pack_back,
+        decision_story: deriveDecisionStory(result.case, policy)
       });
       return;
     }
@@ -160,10 +247,18 @@ export async function handleRequest(req, res, store = new CaseStore()) {
       return;
     }
 
+    const storyCaseId = caseIdFromPath(pathname, "decision-story");
+    if (storyCaseId && req.method === "GET") {
+      const decisionCase = await store.getCase(storyCaseId);
+      const policy = await loadReadinessPolicy();
+      sendJson(res, 200, { decision_story: deriveDecisionStory(decisionCase, policy) });
+      return;
+    }
+
     sendError(res, 404, "Not found");
   } catch (error) {
-    const statusCode = error.code === "ENOENT" ? 404 : 400;
-    sendError(res, statusCode, error.message || "Request failed");
+    const statusCode = error.statusCode || (error.code === "ENOENT" ? 404 : 400);
+    sendDetailedError(res, statusCode, error);
   }
 }
 
@@ -171,7 +266,7 @@ export function createServer({ caseStore = new CaseStore() } = {}) {
   return http.createServer((req, res) => handleRequest(req, res, caseStore));
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (fileURLToPath(import.meta.url) === process.argv[1]) {
   createServer().listen(PORT, () => {
     console.log(`KLEAR Decision Room API listening on http://127.0.0.1:${PORT}`);
   });

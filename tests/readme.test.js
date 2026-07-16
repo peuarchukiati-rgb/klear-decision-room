@@ -6,10 +6,13 @@ const readme = await readFile("README.md", "utf8");
 
 test("README presents product thesis and judge walkthrough", () => {
   assert.match(readme, /Where AI prepares decisions without owning them/);
-  assert.match(readme, /Truth Lane\s*→\s*Case Writing Lane\s*→\s*Decision Lane/);
+  assert.match(readme, /Truth Lane[\s\S]*Grounded Case Writer[\s\S]*Human Decision[\s\S]*Decision Handoff[\s\S]*Pack Back[\s\S]*Versioned DecisionCase/);
   assert.match(readme, /The Problem/);
   assert.match(readme, /The Decision/);
   assert.match(readme, /Walkthrough/);
+  assert.match(readme, /human_decision_events.*canonical source of truth/);
+  assert.match(readme, /Derived projections never become independent sources of truth/);
+  assert.match(readme, /decision-story/);
   assert.match(readme, /npm start/);
   assert.match(readme, /npm test/);
 });

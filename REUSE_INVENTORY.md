@@ -14,12 +14,12 @@ This file records file-level reuse decisions for the current KLEAR Decision Room
 | `kfc-p1-finance-reviewer/data/paid_ledger.json` | Data-model reference | `data/demo/paid-ledger.json` | Paid-ledger anchor concept reused with new neutral synthetic records. |
 | `kfc-p1-finance-reviewer/data/incoming_batch.json` | Scenario reference | `data/demo/demo-invoices.json`, `data/demo/scenarios.json` | Scenario shape reused as finance demo inspiration; records are newly authored. |
 | `kfc-p1-finance-reviewer/reason_writer.py` | Boundary reference | `packages/case-writer/src/*`, `src/config/modelConfig.js` | AI-as-case-writer boundary reused. KLEAR Decision Room implements a newly written OpenAI Responses API case writer with structured output validation, env/config model IDs, and deterministic fallback. No source code copied. |
-| `kfc-p1-finance-reviewer/build_report.py` | Concept reference | `packages/handoff/src/handoffGenerator.js` | Human + machine handoff idea reused; implementation is newly written. |
+| `kfc-p1-finance-reviewer/build_report.py` | Concept reference | `packages/handoff/src/handoffGenerator.js` | Human + machine handoff idea reused; implementation is newly written with Phase 4 lineage fields. |
 | `kfc-p1-finance-reviewer/output/*` | Not reused | None | Generated outputs are prior work and excluded. |
 | `klear/README.md` | Concept reference | `README.md`, `docs/architecture.md` | Canonical-state and living-handoff concepts reused, rewritten for decision cases. |
-| `klear/src/App.jsx` | Concept reference | `packages/case-store/src/caseStore.js`, `packages/handoff/src/handoffGenerator.js` | Version bump, update log, split/merge/handoff continuity ideas reused. No React code or prompts copied. |
-| `klear/src/Progress.jsx` | Future UI pattern reference | No current destination | Async progress UI remains reserved for a future reviewer experience. No UI implementation copied. |
-| `klear/src/diff.js` | Future utility reference | No current destination | Version comparison idea remains reserved for future case-history comparison. No source code copied. |
+| `klear/src/App.jsx` | Concept reference | `packages/case-store/src/caseStore.js`, `packages/handoff/src/handoffGenerator.js`, `packages/human-decision/src/packBackService.js` | Version bump, update log, split/merge/handoff continuity ideas reused. No React code or prompts copied. |
+| `klear/src/Progress.jsx` | Not reused | None | Reviewer console is newly written as static no-dependency UI. No progress UI implementation copied. |
+| `klear/src/diff.js` | Not reused | None | Version snapshots and history are newly implemented without copying diff utility code. |
 | `klear/DEVPOST_DRAFT.md` | Not reused | None | Submission copy is prior work and excluded. |
 | `klear/DEMO_SCRIPT.md` | Not reused | None | Demo script is prior work and excluded. |
 
@@ -69,6 +69,20 @@ This file records file-level reuse decisions for the current KLEAR Decision Room
 | `tests/helpers/assertions.js` | New shared assertion helper for human-decision immutability checks. |
 | `packages/rules-engine/src/reviewService.js` | Runtime guard that prevents deterministic review from producing human-decision terminal statuses. |
 | `packages/case-writer/src/caseBriefValidator.js` | Runtime guard that rejects unsupported model-output fields, including attempts to write `human_decision`. |
+
+## Phase 4 New Files
+
+| Destination | New work description |
+| --- | --- |
+| `packages/human-decision/src/humanDecisionService.js` | New explicit human decision workflow with action validation, transition guards, canonical decision events, and latest snapshot derivation. |
+| `packages/human-decision/src/packBackService.js` | New guarded Pack Back importer with field whitelist, version conflict handling, evidence merge, and human-decision mutation block. |
+| `packages/case-insights/src/decisionStory.js` | New derived Decision Story projection from persisted `DecisionCase` state. |
+| `apps/web/index.html` | New static reviewer console shell. |
+| `apps/web/styles.css` | New restrained operational reviewer console styling. |
+| `apps/web/app.js` | New browser-side reviewer workflow using the local API. |
+| `tests/humanDecision.test.js` | New tests for human decision events, transition guards, immutable snapshots, handoff lineage, and Pack Back. |
+| `tests/reviewerUi.test.js` | New static UI smoke tests for Phase 4 panels and routes. |
+| `docs/demo-script.md` | New judge-facing lifecycle demo script. |
 
 ## Current Reuse Boundary
 

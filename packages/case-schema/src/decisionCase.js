@@ -27,10 +27,13 @@ export function createEmptyAiCaseBrief() {
 
 export function createEmptyHumanDecision() {
   return {
+    decision_event_id: null,
     decision: null,
     decided_by: null,
     decided_at: null,
-    reason: null
+    reason: null,
+    required_evidence: [],
+    escalation_target: null
   };
 }
 
@@ -72,6 +75,8 @@ export function createDecisionCase({
   evidence = [],
   ai_case_brief = createEmptyAiCaseBrief(),
   human_decision = createEmptyHumanDecision(),
+  human_decision_events = [],
+  pack_back_events = [],
   history = []
 } = {}) {
   if (!case_id) {
@@ -107,6 +112,8 @@ export function createDecisionCase({
     evidence,
     ai_case_brief,
     human_decision,
+    human_decision_events,
+    pack_back_events,
     history: initialHistory
   };
 
@@ -143,6 +150,8 @@ export function validateDecisionCase(decisionCase) {
     "rule_results",
     "unknowns",
     "evidence",
+    "human_decision_events",
+    "pack_back_events",
     "history"
   ]) {
     if (!Array.isArray(decisionCase[field])) {
@@ -183,7 +192,9 @@ export function changedFields(previousCase, nextCase) {
     "unknowns",
     "evidence",
     "ai_case_brief",
-    "human_decision"
+    "human_decision",
+    "human_decision_events",
+    "pack_back_events"
   ];
 
   return fields.filter((field) => {

@@ -1,3 +1,3 @@
 # Evaluation
 
-Deferred until a later phase. No evaluation lab is implemented in Phase 1.
+Deferred. No evaluation lab is implemented in the current KLEAR Decision Room build.

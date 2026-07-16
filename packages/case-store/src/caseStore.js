@@ -27,6 +27,17 @@ export class CaseStore {
     return path.join(this.dataDir, `${caseId}.json`);
   }
 
+  versionDirFor(caseId) {
+    if (!/^[A-Z0-9-]+$/.test(caseId)) {
+      throw new Error("case_id may only contain uppercase letters, numbers, and hyphens");
+    }
+    return path.join(this.dataDir, "versions", caseId);
+  }
+
+  versionFileFor(caseId, version) {
+    return path.join(this.versionDirFor(caseId), `v${String(version).padStart(4, "0")}.json`);
+  }
+
   async nextCaseId(now = new Date()) {
     await this.ensureReady();
     const year = now.getUTCFullYear();
@@ -49,6 +60,7 @@ export class CaseStore {
       status: input.status || CaseStatus.DRAFT
     });
     await this.writeCase(decisionCase);
+    await this.writeVersionSnapshot(decisionCase);
     return decisionCase;
   }
 
@@ -68,6 +80,45 @@ export class CaseStore {
     const decisionCase = JSON.parse(body);
     validateDecisionCase(decisionCase);
     return decisionCase;
+  }
+
+  async listVersions(caseId) {
+    await this.ensureReady();
+    const current = await this.getCase(caseId);
+    let files = [];
+    try {
+      files = await readdir(this.versionDirFor(caseId));
+    } catch (error) {
+      if (error.code !== "ENOENT") {
+        throw error;
+      }
+    }
+
+    if (!files.length) {
+      return [
+        {
+          version: current.version,
+          case_id: current.case_id,
+          status: current.status,
+          updated_at: current.updated_at,
+          snapshot: current
+        }
+      ];
+    }
+
+    const versions = [];
+    for (const file of files.filter((name) => name.endsWith(".json")).sort()) {
+      const snapshot = JSON.parse(await readFile(path.join(this.versionDirFor(caseId), file), "utf8"));
+      validateDecisionCase(snapshot);
+      versions.push({
+        version: snapshot.version,
+        case_id: snapshot.case_id,
+        status: snapshot.status,
+        updated_at: snapshot.updated_at,
+        snapshot
+      });
+    }
+    return versions.sort((a, b) => a.version - b.version);
   }
 
   async saveCase(caseId, patch = {}, { actor, note = "Case saved.", source_event = "api" } = {}) {
@@ -132,6 +183,7 @@ export class CaseStore {
     ];
     validateDecisionCase(updated);
     await this.writeCase(updated);
+    await this.writeVersionSnapshot(updated);
     return updated;
   }
 
@@ -139,5 +191,19 @@ export class CaseStore {
     await this.ensureReady();
     validateDecisionCase(decisionCase);
     await writeFile(this.fileFor(decisionCase.case_id), `${JSON.stringify(decisionCase, null, 2)}\n`);
+  }
+
+  async writeVersionSnapshot(decisionCase) {
+    await mkdir(this.versionDirFor(decisionCase.case_id), { recursive: true });
+    const filePath = this.versionFileFor(decisionCase.case_id, decisionCase.version);
+    try {
+      await readFile(filePath, "utf8");
+      return;
+    } catch (error) {
+      if (error.code !== "ENOENT") {
+        throw error;
+      }
+    }
+    await writeFile(filePath, `${JSON.stringify(decisionCase, null, 2)}\n`, { flag: "wx" });
   }
 }

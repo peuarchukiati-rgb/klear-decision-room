@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>KLEAR Decision Room</title>
+    <link rel="stylesheet" href="/styles.css">
+  </head>
+  <body>
+    <header class="topbar">
+      <div>
+        <h1>KLEAR Decision Room</h1>
+        <p>Where AI prepares decisions without owning them.</p>
+      </div>
+      <button id="refresh">Refresh</button>
+    </header>
+
+    <main class="layout">
+      <section class="inbox">
+        <div class="section-head">
+          <h2>Case Inbox</h2>
+          <span id="case-count">0 cases</span>
+        </div>
+        <div id="case-list" class="case-list"></div>
+      </section>
+
+      <section class="review">
+        <div id="empty-state" class="empty-state">Select a case to review.</div>
+        <div id="case-view" hidden>
+          <div class="case-title">
+            <div>
+              <h2 id="case-title"></h2>
+              <p id="case-subtitle"></p>
+            </div>
+            <div class="status-stack">
+              <span id="case-status" class="pill"></span>
+              <span id="case-readiness" class="pill"></span>
+            </div>
+          </div>
+
+          <div class="tabs">
+            <button data-tab="review" class="active">Review</button>
+            <button data-tab="evidence">Evidence</button>
+            <button data-tab="timeline">Timeline</button>
+            <button data-tab="decision">Decision</button>
+            <button data-tab="handoff">Handoff</button>
+            <button data-tab="packback">Pack Back</button>
+          </div>
+
+          <section id="tab-review" class="tab-panel">
+            <div class="grid two">
+              <article>
+                <h3>Normalized Facts</h3>
+                <dl id="facts"></dl>
+              </article>
+              <article>
+                <h3>Readiness</h3>
+                <div id="readiness"></div>
+              </article>
+            </div>
+            <article>
+              <h3>Grounded Case Brief</h3>
+              <div id="case-brief" class="brief"></div>
+            </article>
+            <article>
+              <h3>Rule Results</h3>
+              <div id="rules"></div>
+            </article>
+            <article>
+              <h3>Unknowns</h3>
+              <div id="unknowns"></div>
+            </article>
+          </section>
+
+          <section id="tab-evidence" class="tab-panel" hidden>
+            <div class="grid two">
+              <article>
+                <h3>Rules</h3>
+                <div id="trace-rules"></div>
+              </article>
+              <article>
+                <h3>Evidence</h3>
+                <div id="trace-evidence"></div>
+              </article>
+            </div>
+          </section>
+
+          <section id="tab-timeline" class="tab-panel" hidden>
+            <article>
+              <h3>Decision Timeline</h3>
+              <ol id="timeline" class="timeline"></ol>
+            </article>
+          </section>
+
+          <section id="tab-decision" class="tab-panel" hidden>
+            <article>
+              <h3>Human Decision</h3>
+              <form id="decision-form" class="form">
+                <label>Action
+                  <select name="action">
+                    <option value="APPROVE">Approve</option>
+                    <option value="REJECT">Reject</option>
+                    <option value="REQUEST_EVIDENCE">Request evidence</option>
+                    <option value="ESCALATE">Escalate</option>
+                  </select>
+                </label>
+                <label>Reviewer name <input name="reviewer_name" value="Finance Reviewer" required></label>
+                <label>Reason <textarea name="reason" required></textarea></label>
+                <label>Required evidence <input name="required_evidence" placeholder="Required for REQUEST_EVIDENCE"></label>
+                <label>Escalation target <input name="escalation_target" placeholder="Required for ESCALATE"></label>
+                <button type="submit">Submit Decision</button>
+              </form>
+              <pre id="decision-result"></pre>
+            </article>
+          </section>
+
+          <section id="tab-handoff" class="tab-panel" hidden>
+            <article>
+              <div class="section-head">
+                <h3>Decision Handoff</h3>
+                <button id="copy-handoff">Copy Markdown</button>
+              </div>
+              <pre id="handoff-markdown"></pre>
+              <h3>Machine-readable Handoff</h3>
+              <pre id="handoff-json"></pre>
+            </article>
+          </section>
+
+          <section id="tab-packback" class="tab-panel" hidden>
+            <article>
+              <h3>Pack Back</h3>
+              <form id="packback-form" class="form">
+                <label>Structured pack-back JSON
+                  <textarea name="payload" rows="14"></textarea>
+                </label>
+                <button type="submit">Import Pack Back</button>
+              </form>
+              <pre id="packback-result"></pre>
+            </article>
+          </section>
+        </div>
+      </section>
+    </main>
+
+    <script src="/app.js"></script>
+  </body>
+</html>
