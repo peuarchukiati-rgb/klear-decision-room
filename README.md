@@ -125,6 +125,10 @@ curl http://127.0.0.1:8787/cases/$CASE_ID/decision-story
 - `GET /cases/:caseId/traceability`
 - `GET /cases/:caseId/timeline`
 
+## Handoff Protocol
+
+KLEAR uses handoff as a state-transfer protocol, not a loose summary. The protocol is documented in [`docs/handoff-protocol.md`](docs/handoff-protocol.md) so other agents can create, consume, and pack back work without re-deriving context.
+
 ## Run
 
 ```bash
