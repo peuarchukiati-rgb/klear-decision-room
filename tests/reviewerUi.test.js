@@ -7,7 +7,12 @@ test("static reviewer UI exposes Phase 4 operational panels", async () => {
   const js = await readFile("apps/web/app.js", "utf8");
 
   for (const label of [
-    "Start a Decision Lifecycle",
+    "Live Demo Mode",
+    "Payment Review Simulation",
+    "Start Bank-Mismatch Demo",
+    "Compare Good vs Messy Intake",
+    "Reviewer Objective",
+    "Proof Target",
     "Demo intake packet",
     "Import Intake",
     "Run Truth Review",
@@ -28,6 +33,9 @@ test("static reviewer UI exposes Phase 4 operational panels", async () => {
   assert.ok(js.includes("/decision-story"));
   assert.ok(js.includes("/demo-intake-packets"));
   assert.ok(js.includes("/intake-packets"));
+  assert.ok(js.includes("DEMO-HANDOFF-SCN-BANK-MISMATCH"));
+  assert.ok(js.includes("DEMO-MESSY-SCN-MISSING-VENDOR"));
+  assert.ok(js.includes("Unsafe approval blocked"));
   assert.ok(js.includes("/case-brief"));
   assert.ok(js.includes("/decisions"));
   assert.ok(js.includes("/pack-back"));

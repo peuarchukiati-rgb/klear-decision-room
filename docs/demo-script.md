@@ -32,16 +32,15 @@ Open:
 http://127.0.0.1:8787/
 ```
 
-Primary path: use the **Start a Decision Lifecycle** runway in the reviewer console.
+Primary path: use **Live Demo Mode** in the reviewer console.
 
-1. Choose `STRUCTURED · SCN-BANK-MISMATCH` to show a good handoff that still contains a payment blocker, or choose `MESSY · SCN-MISSING-VENDOR` to show unstructured intake becoming explicit unknowns.
-2. Click **Import Intake**.
-3. Click **Run Truth Review**.
-4. Click **Prepare Brief**.
-5. Click **Try Blocked Approve** to prove AI and shortcuts cannot approve an evidence-required case.
-6. Click **Request Evidence**.
-7. Click **Open Handoff**.
-8. Click **Import Pack Back**.
+1. Read the scenario aloud: Friday 4:15 PM, payment cutoff in 45 minutes, AP queue is messy, one invoice looks normal, but the bank account does not match vendor master.
+2. Click **Start Bank-Mismatch Demo**.
+3. Let the one-click proof run: intake import, deterministic review, grounded brief, blocked approval, human evidence request, and Pack Back.
+4. Scroll into the reviewer console and inspect normalized facts, readiness, rule results, evidence, handoff, and timeline.
+5. Click **Compare Good vs Messy Intake** if you want to show why structured handoff quality matters and why messy input becomes explicit unknowns.
+
+Manual scenario controls remain available for stepping through the same lifecycle one action at a time.
 
 API fallback: in another shell, seed a case:
 

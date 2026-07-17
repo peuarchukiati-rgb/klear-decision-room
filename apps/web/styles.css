@@ -64,9 +64,57 @@ h3 {
 }
 
 .runway {
-  padding: 16px 24px;
+  padding: 20px 24px;
   border-bottom: 1px solid #d7ddd7;
   background: #eef4f0;
+}
+
+.eyebrow {
+  display: inline-block;
+  margin-bottom: 6px;
+  color: #1b6b57;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.scenario-copy {
+  max-width: 920px;
+  margin-bottom: 8px;
+  color: #17201d;
+  font-size: 17px;
+  line-height: 1.45;
+}
+
+.demo-brief {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin: 16px 0 12px;
+}
+
+.demo-brief article {
+  margin: 0;
+}
+
+.primary-actions {
+  margin: 12px 0;
+}
+
+.primary-action {
+  border-color: #145541;
+  background: #145541;
+  color: #ffffff;
+}
+
+.primary-action:hover {
+  border-color: #0e3e31;
+  background: #0e3e31;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
 }
 
 .intake-grid {
@@ -111,6 +159,18 @@ h3 {
 
 #packet-preview, #runway-result {
   max-height: 220px;
+}
+
+.manual-demo {
+  margin-top: 10px;
+  border-top: 1px solid #d7ddd7;
+  padding-top: 10px;
+}
+
+.manual-demo summary {
+  cursor: pointer;
+  color: #35413c;
+  font-weight: 600;
 }
 
 .layout {
@@ -337,7 +397,7 @@ pre {
 }
 
 @media (max-width: 900px) {
-  .layout, .grid.two, .lane-banner, .compact-form, .intake-grid {
+  .layout, .grid.two, .lane-banner, .compact-form, .intake-grid, .demo-brief {
     grid-template-columns: 1fr;
   }
 

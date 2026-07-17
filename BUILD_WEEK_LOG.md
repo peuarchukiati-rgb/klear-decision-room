@@ -24,3 +24,4 @@
 - Tightened judge demo flow: README/demo script now capture generated case IDs, console visually separates AI-prepared brief from authoritative human decision, and escalation errors name the required fields.
 - Added in-console bring-your-own-key live model case-brief generation with request-scoped credentials, live/fallback badge, and tests confirming API keys are not persisted.
 - Added Phase 4.1 intake runway: structured handoff and messy intake packet import, demo packet API, reviewer-console lifecycle controls, and docs for intake-driven demos.
+- Added guided payment review simulation mode so the first screen presents the finance cutoff scenario, one-click bank-mismatch proof path, and good-vs-messy intake comparison.

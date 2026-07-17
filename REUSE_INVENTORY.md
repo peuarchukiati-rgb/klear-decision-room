@@ -93,8 +93,8 @@ This file records file-level reuse decisions for the current KLEAR Decision Room
 | `docs/demo-intake/structured-bank-mismatch.md` | New example of a protocol-shaped structured finance handoff packet. |
 | `docs/demo-intake/messy-missing-vendor.txt` | New example of unstructured intake text that becomes explicit unknowns after review. |
 | `apps/api/src/server.js` | Extended with demo intake packet listing and intake import routes. |
-| `apps/web/index.html` | Extended with the Start a Decision Lifecycle intake runway. |
-| `apps/web/app.js` | Extended with import, review, brief, guardrail, handoff, and pack-back runway actions. |
+| `apps/web/index.html` | Extended with guided payment review simulation copy, intake controls, and one-click proof controls. |
+| `apps/web/app.js` | Extended with import, review, brief, guardrail, handoff, pack-back, one-click proof, and good-vs-messy comparison actions. |
 | `apps/web/styles.css` | Extended with operational styling for the intake runway and lifecycle steps. |
 
 ## Current Reuse Boundary

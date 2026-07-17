@@ -78,6 +78,38 @@ function renderSelectedPacket() {
   el("packet-preview").textContent = item ? JSON.stringify(item.packet, null, 2) : "No demo intake packets available.";
 }
 
+function findDemoPacket(packetId) {
+  const item = demoIntakePackets.find((packet) => packet.packet_id === packetId);
+  if (!item) {
+    throw new Error(`Demo packet unavailable: ${packetId}`);
+  }
+  return item;
+}
+
+function writeRunway(lines) {
+  el("runway-result").textContent = Array.isArray(lines) ? lines.join("\n") : lines;
+}
+
+function setRunwayBusy(isBusy) {
+  for (const id of ["start-live-demo", "compare-intakes", "import-packet", "run-review", "run-brief", "try-blocked-approve", "request-evidence", "import-demo-packback"]) {
+    const button = el(id);
+    if (button) button.disabled = isBusy;
+  }
+}
+
+function markProofStep(index, state = "done") {
+  const steps = Array.from(document.querySelectorAll("#runway-steps .step"));
+  if (steps[index]) {
+    steps[index].classList.add(state);
+  }
+}
+
+function clearProofSteps() {
+  document.querySelectorAll("#runway-steps .step").forEach((step) => {
+    step.classList.remove("done", "blocked");
+  });
+}
+
 function updateRunway(story = currentStory) {
   const decisionCase = story?.latest_handoff?.machine_readable;
   const steps = Array.from(document.querySelectorAll("#runway-steps .step"));
@@ -85,14 +117,92 @@ function updateRunway(story = currentStory) {
     Boolean(decisionCase),
     Boolean(decisionCase?.rule_results?.length),
     Boolean(decisionCase?.ai_case_brief?.summary),
+    null,
     Boolean(decisionCase?.human_decision_events?.length),
-    Boolean(story?.latest_handoff?.metadata || story?.latest_handoff),
     Boolean(decisionCase?.pack_back_events?.length)
   ];
-  steps.forEach((step, index) => step.classList.toggle("done", states[index]));
+  steps.forEach((step, index) => {
+    if (states[index] !== null) {
+      step.classList.toggle("done", states[index]);
+    }
+  });
   el("runway-status").textContent = decisionCase
     ? `${decisionCase.case_id} · ${decisionCase.status}`
     : "No intake imported";
+}
+
+async function importDemoPacket(packetId) {
+  const item = findDemoPacket(packetId);
+  const result = await api("/intake-packets", {
+    method: "POST",
+    body: JSON.stringify({ packet: item.packet })
+  });
+  selectedCaseId = result.case.case_id;
+  await loadCases();
+  await selectCase(selectedCaseId);
+  return result.case;
+}
+
+async function runTruthReview(caseId) {
+  return api(`/cases/${caseId}/deterministic-review`, {
+    method: "POST",
+    body: JSON.stringify({})
+  });
+}
+
+async function prepareFallbackBrief(caseId) {
+  return api(`/cases/${caseId}/case-brief`, {
+    method: "POST",
+    body: JSON.stringify({})
+  });
+}
+
+async function attemptApproval(caseId) {
+  try {
+    await api(`/cases/${caseId}/decisions`, {
+      method: "POST",
+      body: JSON.stringify({
+        action: "APPROVE",
+        reviewer: { role: "REVIEWER", name: "Guardrail Tester" },
+        reason: "Intentional guardrail proof."
+      })
+    });
+    return { blocked: false, message: "Unexpected: approval succeeded." };
+  } catch (error) {
+    return { blocked: true, message: error.message };
+  }
+}
+
+async function requestEvidenceDecision(caseId) {
+  return api(`/cases/${caseId}/decisions`, {
+    method: "POST",
+    body: JSON.stringify({
+      action: "REQUEST_EVIDENCE",
+      reviewer: { role: "REVIEWER", name: "Finance Reviewer" },
+      reason: "Evidence is required before a payment decision can be made.",
+      required_evidence: ["Provide vendor bank confirmation or missing support for unresolved hard-gate rules."]
+    })
+  });
+}
+
+async function importPackBackFromStory(story) {
+  const machine = story.latest_handoff.machine_readable;
+  return api(`/cases/${story.case_id}/pack-back`, {
+    method: "POST",
+    body: JSON.stringify({
+      case_id: story.case_id,
+      source_case_version: story.version,
+      handoff_id: machine.handoff_id,
+      responding_actor: { role: "NEXT_OWNER", name: "Accounts Payable" },
+      event_type: "ACTION_COMPLETED",
+      completed_actions: ["Reviewed decision handoff and acknowledged required evidence."],
+      new_evidence: [],
+      changed_fields: [],
+      unresolved_items: ["Vendor bank confirmation still required before approval."],
+      note: "AP received the handoff and will collect the requested evidence.",
+      timestamp: new Date().toISOString()
+    })
+  });
 }
 
 async function loadCases() {
@@ -226,54 +336,137 @@ window.addEventListener("beforeunload", () => {
   liveModelCredentials = { api_key: "", model_id: "" };
 });
 
+el("start-live-demo").addEventListener("click", async () => {
+  setRunwayBusy(true);
+  clearProofSteps();
+  const lines = [
+    "Starting bank-mismatch simulation...",
+    "Scenario: invoice, PO, and vendor exist, but the submitted bank account differs from vendor master."
+  ];
+  writeRunway(lines);
+
+  try {
+    const decisionCase = await importDemoPacket("DEMO-HANDOFF-SCN-BANK-MISMATCH");
+    markProofStep(0);
+    lines.push(`Intake received as ${decisionCase.case_id}.`);
+    writeRunway(lines);
+
+    const reviewed = await runTruthReview(decisionCase.case_id);
+    const bankRule = reviewed.case.rule_results.find((rule) => rule.rule_id === "R-003");
+    markProofStep(1);
+    lines.push(`Truth lane result: ${bankRule.rule_id} ${bankRule.status} - ${bankRule.summary}`);
+    writeRunway(lines);
+    await selectCase(decisionCase.case_id);
+
+    const brief = await prepareFallbackBrief(decisionCase.case_id);
+    markProofStep(2);
+    lines.push(brief.case_writer.model_called ? "Grounded case brief prepared by live model." : "Grounded case brief prepared by deterministic fallback.");
+    writeRunway(lines);
+    await selectCase(decisionCase.case_id);
+
+    const approval = await attemptApproval(decisionCase.case_id);
+    if (!approval.blocked) {
+      throw new Error(approval.message);
+    }
+    markProofStep(3, "blocked");
+    lines.push(`Unsafe approval blocked: ${approval.message}`);
+    writeRunway(lines);
+
+    const decision = await requestEvidenceDecision(decisionCase.case_id);
+    markProofStep(4);
+    lines.push(`Human decision recorded: ${decision.decision_event.decision_event_id} REQUEST_EVIDENCE.`);
+    writeRunway(lines);
+    await selectCase(decisionCase.case_id);
+
+    const packBack = await importPackBackFromStory(currentStory);
+    markProofStep(5);
+    lines.push(`Pack Back received: ${packBack.pack_back.pack_back_id}.`);
+    lines.push("Proof complete: AI prepared the case, deterministic truth found the blocker, and only the human decision lane changed authority.");
+    writeRunway(lines);
+    await selectCase(decisionCase.case_id);
+    await loadCases();
+    switchTab("timeline");
+    document.querySelector(".layout").scrollIntoView({ behavior: "smooth", block: "start" });
+  } catch (error) {
+    lines.push(`Demo stopped: ${error.message}`);
+    writeRunway(lines);
+  } finally {
+    setRunwayBusy(false);
+  }
+});
+
+el("compare-intakes").addEventListener("click", async () => {
+  setRunwayBusy(true);
+  clearProofSteps();
+  const lines = ["Comparing good structured handoff vs messy intake..."];
+  writeRunway(lines);
+
+  try {
+    const clean = await importDemoPacket("DEMO-HANDOFF-SCN-CLEAN");
+    const cleanReview = await runTruthReview(clean.case_id);
+    const cleanStory = (await api(`/cases/${clean.case_id}/decision-story`)).decision_story;
+    lines.push(`Good handoff ${clean.case_id}: ready=${cleanReview.deterministic_review.readiness.ready_for_decision}, blockers=${cleanStory.readiness.blocking_rule_count}, unknowns=${cleanStory.readiness.unknown_count}.`);
+    writeRunway(lines);
+
+    const messy = await importDemoPacket("DEMO-MESSY-SCN-MISSING-VENDOR");
+    const messyReview = await runTruthReview(messy.case_id);
+    const messyStory = (await api(`/cases/${messy.case_id}/decision-story`)).decision_story;
+    lines.push(`Messy intake ${messy.case_id}: ready=${messyReview.deterministic_review.readiness.ready_for_decision}, blockers=${messyStory.readiness.blocking_rule_count}, unknowns=${messyStory.readiness.unknown_count}.`);
+    lines.push("Takeaway: KLEAR does not pretend messy input is complete. It preserves unknowns and asks for evidence.");
+    writeRunway(lines);
+
+    await selectCase(messy.case_id);
+    await loadCases();
+    switchTab("review");
+    document.querySelector(".layout").scrollIntoView({ behavior: "smooth", block: "start" });
+  } catch (error) {
+    lines.push(`Comparison stopped: ${error.message}`);
+    writeRunway(lines);
+  } finally {
+    setRunwayBusy(false);
+  }
+});
+
+el("open-console").addEventListener("click", () => {
+  document.querySelector(".layout").scrollIntoView({ behavior: "smooth", block: "start" });
+});
+
 el("import-packet").addEventListener("click", async () => {
   const item = selectedPacket();
   if (!item) return;
   try {
-    const result = await api("/intake-packets", {
-      method: "POST",
-      body: JSON.stringify({ packet: item.packet })
-    });
-    selectedCaseId = result.case.case_id;
-    el("runway-result").textContent = `Imported ${item.label} as ${selectedCaseId}.`;
-    await loadCases();
-    await selectCase(selectedCaseId);
+    const decisionCase = await importDemoPacket(item.packet_id);
+    writeRunway(`Imported ${item.label} as ${decisionCase.case_id}.`);
     switchTab("review");
   } catch (error) {
-    el("runway-result").textContent = error.message;
+    writeRunway(error.message);
   }
 });
 
 el("run-review").addEventListener("click", async () => {
   if (!selectedCaseId) return;
   try {
-    const result = await api(`/cases/${selectedCaseId}/deterministic-review`, {
-      method: "POST",
-      body: JSON.stringify({})
-    });
-    el("runway-result").textContent = `Truth review complete: ${result.deterministic_review.rule_count} rules, ${result.deterministic_review.unknown_count} unknowns.`;
+    const result = await runTruthReview(selectedCaseId);
+    writeRunway(`Truth review complete: ${result.deterministic_review.rule_count} rules, ${result.deterministic_review.unknown_count} unknowns.`);
     await selectCase(selectedCaseId);
     await loadCases();
   } catch (error) {
-    el("runway-result").textContent = error.message;
+    writeRunway(error.message);
   }
 });
 
 el("run-brief").addEventListener("click", async () => {
   if (!selectedCaseId) return;
   try {
-    const result = await api(`/cases/${selectedCaseId}/case-brief`, {
-      method: "POST",
-      body: JSON.stringify({})
-    });
-    el("runway-result").textContent = result.case_writer.model_called
+    const result = await prepareFallbackBrief(selectedCaseId);
+    writeRunway(result.case_writer.model_called
       ? `Live model prepared brief with ${result.case_writer.model_id}.`
-      : "Fallback brief prepared without model credentials.";
+      : "Fallback brief prepared without model credentials.");
     await selectCase(selectedCaseId);
     await loadCases();
     switchTab("review");
   } catch (error) {
-    el("runway-result").textContent = error.message;
+    writeRunway(error.message);
   }
 });
 
@@ -283,39 +476,21 @@ el("try-blocked-approve").addEventListener("click", async () => {
     el("runway-result").textContent = "This case is ready, so blocked-approve proof is not expected. Import a bank-mismatch or missing-evidence packet.";
     return;
   }
-  try {
-    await api(`/cases/${selectedCaseId}/decisions`, {
-      method: "POST",
-      body: JSON.stringify({
-        action: "APPROVE",
-        reviewer: { role: "REVIEWER", name: "Guardrail Tester" },
-        reason: "Intentional guardrail proof."
-      })
-    });
-    el("runway-result").textContent = "Unexpected: approval succeeded.";
-  } catch (error) {
-    el("runway-result").textContent = `Guardrail held: ${error.message}`;
-  }
+  const approval = await attemptApproval(selectedCaseId);
+  writeRunway(approval.blocked ? `Guardrail held: ${approval.message}` : approval.message);
+  if (approval.blocked) markProofStep(3, "blocked");
 });
 
 el("request-evidence").addEventListener("click", async () => {
   if (!selectedCaseId) return;
   try {
-    const result = await api(`/cases/${selectedCaseId}/decisions`, {
-      method: "POST",
-      body: JSON.stringify({
-        action: "REQUEST_EVIDENCE",
-        reviewer: { role: "REVIEWER", name: "Finance Reviewer" },
-        reason: "Evidence is required before a payment decision can be made.",
-        required_evidence: ["Provide vendor bank confirmation or missing support for unresolved hard-gate rules."]
-      })
-    });
-    el("runway-result").textContent = `Human decision event recorded: ${result.decision_event.decision_event_id}.`;
+    const result = await requestEvidenceDecision(selectedCaseId);
+    writeRunway(`Human decision event recorded: ${result.decision_event.decision_event_id}.`);
     await selectCase(selectedCaseId);
     await loadCases();
     switchTab("handoff");
   } catch (error) {
-    el("runway-result").textContent = error.message;
+    writeRunway(error.message);
   }
 });
 
@@ -332,12 +507,12 @@ el("import-demo-packback").addEventListener("click", async () => {
       method: "POST",
       body: JSON.stringify(payload)
     });
-    el("runway-result").textContent = `Pack Back imported: ${result.pack_back.pack_back_id}.`;
+    writeRunway(`Pack Back imported: ${result.pack_back.pack_back_id}.`);
     await selectCase(selectedCaseId);
     await loadCases();
     switchTab("timeline");
   } catch (error) {
-    el("runway-result").textContent = error.message;
+    writeRunway(error.message);
   }
 });
 

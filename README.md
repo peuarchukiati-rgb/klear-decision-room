@@ -76,15 +76,10 @@ Phase 4 exposes derived judge-facing intelligence without changing that source-o
 
 ## Walkthrough
 
-1. Import a structured handoff packet or messy intake note from the reviewer console.
-2. Run deterministic review.
-3. Generate a grounded case brief.
-4. Inspect readiness, traceability, and timeline.
-5. Try a blocked approval on an evidence-required case to prove the guardrail.
-6. Submit an explicit human decision.
-7. Inspect the immutable version snapshot and Decision Handoff.
-8. Import a Pack Back update from the next owner.
-9. Inspect the complete Decision Story.
+1. Open the reviewer console and click **Start Bank-Mismatch Demo**.
+2. Watch KLEAR import intake, run deterministic truth review, prepare a grounded brief, block unsafe approval, record a human evidence request, and import Pack Back.
+3. Inspect the selected case's normalized facts, readiness, traceability, timeline, handoff, and versions.
+4. Use **Compare Good vs Messy Intake** to see clean structured input become decision-ready while messy input preserves unknowns instead of guessing.
 
 Example:
 
@@ -110,7 +105,7 @@ curl http://127.0.0.1:8787/cases/$CASE_ID/timeline
 curl http://127.0.0.1:8787/cases/$CASE_ID/decision-story
 ```
 
-The reviewer console provides the faster judge path: choose a demo intake packet, click **Import Intake**, then follow **Run Truth Review**, **Prepare Brief**, **Try Blocked Approve**, **Request Evidence**, **Open Handoff**, and **Import Pack Back**.
+The reviewer console provides the fastest judge path: click **Start Bank-Mismatch Demo** for a one-click operational proof. Manual scenario controls remain available for choosing a specific intake packet and stepping through the same lifecycle.
 
 ## API
 

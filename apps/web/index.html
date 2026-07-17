@@ -19,35 +19,56 @@
       <section class="runway">
         <div class="section-head">
           <div>
-            <h2>Start a Decision Lifecycle</h2>
-            <p class="meta">Import a clean handoff or messy intake note, then walk the case through truth, grounded AI, human decision, handoff, and pack back.</p>
+            <span class="eyebrow">Live Demo Mode</span>
+            <h2>Payment Review Simulation</h2>
+            <p class="scenario-copy">Imagine it is Friday, 4:15 PM. Payment cutoff is in 45 minutes, the AP queue is full of invoices, emails, PDFs, and vendor records, and one payment is about to leave the business.</p>
+            <p class="meta">The invoice looks normal: vendor exists, PO exists, amount is in range. One detail is wrong: the submitted bank account does not match the approved vendor master.</p>
           </div>
           <span id="runway-status" class="pill">No intake imported</span>
         </div>
-        <div class="intake-grid">
-          <label>Demo intake packet
-            <select id="packet-select"></select>
-          </label>
-          <div class="button-row runway-actions">
-            <button id="import-packet">Import Intake</button>
-            <button id="run-review">Run Truth Review</button>
-            <button id="run-brief">Prepare Brief</button>
-            <button id="try-blocked-approve">Try Blocked Approve</button>
-            <button id="request-evidence">Request Evidence</button>
-            <button id="open-handoff">Open Handoff</button>
-            <button id="import-demo-packback">Import Pack Back</button>
-          </div>
+        <div class="demo-brief">
+          <article>
+            <h3>Reviewer Objective</h3>
+            <p>Decide whether this payment can proceed without letting AI own the decision.</p>
+          </article>
+          <article>
+            <h3>Proof Target</h3>
+            <p>Verify facts without a model, let AI prepare the brief, block unsafe approval, then create a human handoff.</p>
+          </article>
+        </div>
+        <div class="button-row primary-actions">
+          <button id="start-live-demo" class="primary-action">Start Bank-Mismatch Demo</button>
+          <button id="compare-intakes">Compare Good vs Messy Intake</button>
+          <button id="open-console">Open Reviewer Console</button>
         </div>
         <div class="runway-steps" id="runway-steps">
-          <span class="step">1 Intake</span>
-          <span class="step">2 Truth</span>
-          <span class="step">3 Brief</span>
-          <span class="step">4 Human Decision</span>
-          <span class="step">5 Handoff</span>
-          <span class="step">6 Pack Back</span>
+          <span class="step">Intake received</span>
+          <span class="step">Truth verified</span>
+          <span class="step">AI brief prepared</span>
+          <span class="step">Unsafe approval blocked</span>
+          <span class="step">Human decision recorded</span>
+          <span class="step">Pack Back received</span>
         </div>
-        <pre id="packet-preview"></pre>
-        <pre id="runway-result"></pre>
+        <pre id="runway-result">Click Start Bank-Mismatch Demo to run the complete proof path.</pre>
+
+        <details class="manual-demo">
+          <summary>Manual scenario controls</summary>
+          <div class="intake-grid">
+            <label>Demo intake packet
+              <select id="packet-select"></select>
+            </label>
+            <div class="button-row runway-actions">
+              <button id="import-packet">Import Intake</button>
+              <button id="run-review">Run Truth Review</button>
+              <button id="run-brief">Prepare Brief</button>
+              <button id="try-blocked-approve">Try Blocked Approve</button>
+              <button id="request-evidence">Request Evidence</button>
+              <button id="open-handoff">Open Handoff</button>
+              <button id="import-demo-packback">Import Pack Back</button>
+            </div>
+          </div>
+          <pre id="packet-preview"></pre>
+        </details>
       </section>
 
       <div class="layout">
