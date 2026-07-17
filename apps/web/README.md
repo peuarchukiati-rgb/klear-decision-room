@@ -4,6 +4,8 @@ Static no-dependency reviewer experience served by the API at `/`.
 
 It supports the Phase 4 operational workflow:
 
+- Start a Decision Lifecycle intake runway
+- Structured handoff and messy intake import
 - Case Inbox
 - Case Review
 - Bring-your-own-key live model brief generation

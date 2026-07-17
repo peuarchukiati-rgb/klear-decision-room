@@ -1,7 +1,7 @@
 # Reuse Inventory
 
 Created: 2026-07-16
-Last updated: 2026-07-16
+Last updated: 2026-07-17
 
 This file records file-level reuse decisions for the current KLEAR Decision Room implementation. Prior repositories are used as architecture, product, and data-shape influence only. No source code, prompts, generated outputs, UI copy, sponsor-specific branding, or demo assets are copied from either prior repository.
 
@@ -40,6 +40,7 @@ This file records file-level reuse decisions for the current KLEAR Decision Room
 | Destination | New work description |
 | --- | --- |
 | `packages/intake/src/invoiceNormalizer.js` | New structured-input normalizer that writes facts, unknowns, and invoice-field evidence. |
+| `packages/intake/src/index.js` | New intake package barrel export. |
 | `packages/evidence/src/evidenceFactory.js` | New stable evidence ID and evidence object helpers. |
 | `packages/rules-engine/src/financeRules.js` | New deterministic finance rules R-001 through R-007, influenced by Finance Reviewer concepts but not copied. |
 | `packages/rules-engine/src/reviewService.js` | New review orchestration that versions cases without mutating human decisions. |
@@ -83,6 +84,18 @@ This file records file-level reuse decisions for the current KLEAR Decision Room
 | `tests/humanDecision.test.js` | New tests for human decision events, transition guards, immutable snapshots, handoff lineage, and Pack Back. |
 | `tests/reviewerUi.test.js` | New static UI smoke tests for Phase 4 panels and routes. |
 | `docs/demo-script.md` | New judge-facing lifecycle demo script. |
+
+## Phase 4.1 New Files
+
+| Destination | New work description |
+| --- | --- |
+| `packages/intake/src/intakePacketImporter.js` | New deterministic intake packet importer for structured handoff packets and messy notes, with human-decision bypass guards. |
+| `docs/demo-intake/structured-bank-mismatch.md` | New example of a protocol-shaped structured finance handoff packet. |
+| `docs/demo-intake/messy-missing-vendor.txt` | New example of unstructured intake text that becomes explicit unknowns after review. |
+| `apps/api/src/server.js` | Extended with demo intake packet listing and intake import routes. |
+| `apps/web/index.html` | Extended with the Start a Decision Lifecycle intake runway. |
+| `apps/web/app.js` | Extended with import, review, brief, guardrail, handoff, and pack-back runway actions. |
+| `apps/web/styles.css` | Extended with operational styling for the intake runway and lifecycle steps. |
 
 ## Current Reuse Boundary
 

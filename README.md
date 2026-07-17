@@ -23,6 +23,8 @@ Traditional ERP/AP systems can route approvals, but KLEAR's wedge is the portabl
 KLEAR Decision Room keeps each lane independently verifiable and independently replaceable:
 
 ```text
+Decision Intake
+    ↓
 Truth Lane
     ↓
 Grounded Case Writer
@@ -36,6 +38,7 @@ Pack Back
 Versioned DecisionCase
 ```
 
+- **Decision Intake:** structured handoff packets and messy intake notes both become versioned `DecisionCase` records without granting decision authority.
 - **Truth Lane:** deterministic normalization, evidence creation, and rules decide what can be verified.
 - **Grounded Case Writer:** the configured model, or a deterministic fallback, writes a grounded case brief from supplied facts, rules, unknowns, and evidence only.
 - **Human Decision:** a reviewer approves, rejects, requests evidence, or escalates through an explicit decision event.
@@ -73,14 +76,15 @@ Phase 4 exposes derived judge-facing intelligence without changing that source-o
 
 ## Walkthrough
 
-1. Create or seed a demo case.
+1. Import a structured handoff packet or messy intake note from the reviewer console.
 2. Run deterministic review.
 3. Generate a grounded case brief.
 4. Inspect readiness, traceability, and timeline.
-5. Submit an explicit human decision.
-6. Inspect the immutable version snapshot and Decision Handoff.
-7. Import a Pack Back update from the next owner.
-8. Inspect the complete Decision Story.
+5. Try a blocked approval on an evidence-required case to prove the guardrail.
+6. Submit an explicit human decision.
+7. Inspect the immutable version snapshot and Decision Handoff.
+8. Import a Pack Back update from the next owner.
+9. Inspect the complete Decision Story.
 
 Example:
 
@@ -106,9 +110,13 @@ curl http://127.0.0.1:8787/cases/$CASE_ID/timeline
 curl http://127.0.0.1:8787/cases/$CASE_ID/decision-story
 ```
 
+The reviewer console provides the faster judge path: choose a demo intake packet, click **Import Intake**, then follow **Run Truth Review**, **Prepare Brief**, **Try Blocked Approve**, **Request Evidence**, **Open Handoff**, and **Import Pack Back**.
+
 ## API
 
 - `GET /health`
+- `GET /demo-intake-packets`
+- `POST /intake-packets`
 - `POST /cases`
 - `GET /cases`
 - `GET /cases/:caseId`

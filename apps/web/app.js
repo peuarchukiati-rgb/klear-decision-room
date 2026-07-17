@@ -1,5 +1,6 @@
 let selectedCaseId = null;
 let currentStory = null;
+let demoIntakePackets = [];
 let liveModelCredentials = {
   api_key: "",
   model_id: ""
@@ -53,6 +54,47 @@ function renderRows(items, render) {
   return items.length ? items.map((item) => `<div class="row">${render(item)}</div>`).join("") : "<p class=\"meta\">None recorded.</p>";
 }
 
+function switchTab(tabName) {
+  document.querySelectorAll(".tabs button").forEach((item) => item.classList.toggle("active", item.dataset.tab === tabName));
+  document.querySelectorAll(".tab-panel").forEach((panel) => panel.hidden = panel.id !== `tab-${tabName}`);
+}
+
+function selectedPacket() {
+  const packetId = el("packet-select").value;
+  return demoIntakePackets.find((item) => item.packet_id === packetId);
+}
+
+async function loadDemoIntakePackets() {
+  const { packets } = await api("/demo-intake-packets");
+  demoIntakePackets = packets;
+  el("packet-select").innerHTML = packets.map((item) => `
+    <option value="${item.packet_id}">${item.kind.toUpperCase()} · ${item.scenario_id}</option>
+  `).join("");
+  renderSelectedPacket();
+}
+
+function renderSelectedPacket() {
+  const item = selectedPacket();
+  el("packet-preview").textContent = item ? JSON.stringify(item.packet, null, 2) : "No demo intake packets available.";
+}
+
+function updateRunway(story = currentStory) {
+  const decisionCase = story?.latest_handoff?.machine_readable;
+  const steps = Array.from(document.querySelectorAll("#runway-steps .step"));
+  const states = [
+    Boolean(decisionCase),
+    Boolean(decisionCase?.rule_results?.length),
+    Boolean(decisionCase?.ai_case_brief?.summary),
+    Boolean(decisionCase?.human_decision_events?.length),
+    Boolean(story?.latest_handoff?.metadata || story?.latest_handoff),
+    Boolean(decisionCase?.pack_back_events?.length)
+  ];
+  steps.forEach((step, index) => step.classList.toggle("done", states[index]));
+  el("runway-status").textContent = decisionCase
+    ? `${decisionCase.case_id} · ${decisionCase.status}`
+    : "No intake imported";
+}
+
 async function loadCases() {
   const { cases } = await api("/cases");
   el("case-count").textContent = `${cases.length} cases`;
@@ -81,6 +123,7 @@ async function selectCase(caseId) {
 
 function renderCase(story) {
   const decisionCase = story.latest_handoff.machine_readable;
+  updateRunway(story);
   el("empty-state").hidden = true;
   el("case-view").hidden = false;
   el("case-title").textContent = decisionCase.case_id;
@@ -174,17 +217,128 @@ function seedPackBack(story) {
 }
 
 document.querySelectorAll(".tabs button").forEach((button) => {
-  button.addEventListener("click", () => {
-    document.querySelectorAll(".tabs button").forEach((item) => item.classList.remove("active"));
-    document.querySelectorAll(".tab-panel").forEach((panel) => panel.hidden = true);
-    button.classList.add("active");
-    el(`tab-${button.dataset.tab}`).hidden = false;
-  });
+  button.addEventListener("click", () => switchTab(button.dataset.tab));
 });
 
 el("refresh").addEventListener("click", loadCases);
+el("packet-select").addEventListener("change", renderSelectedPacket);
 window.addEventListener("beforeunload", () => {
   liveModelCredentials = { api_key: "", model_id: "" };
+});
+
+el("import-packet").addEventListener("click", async () => {
+  const item = selectedPacket();
+  if (!item) return;
+  try {
+    const result = await api("/intake-packets", {
+      method: "POST",
+      body: JSON.stringify({ packet: item.packet })
+    });
+    selectedCaseId = result.case.case_id;
+    el("runway-result").textContent = `Imported ${item.label} as ${selectedCaseId}.`;
+    await loadCases();
+    await selectCase(selectedCaseId);
+    switchTab("review");
+  } catch (error) {
+    el("runway-result").textContent = error.message;
+  }
+});
+
+el("run-review").addEventListener("click", async () => {
+  if (!selectedCaseId) return;
+  try {
+    const result = await api(`/cases/${selectedCaseId}/deterministic-review`, {
+      method: "POST",
+      body: JSON.stringify({})
+    });
+    el("runway-result").textContent = `Truth review complete: ${result.deterministic_review.rule_count} rules, ${result.deterministic_review.unknown_count} unknowns.`;
+    await selectCase(selectedCaseId);
+    await loadCases();
+  } catch (error) {
+    el("runway-result").textContent = error.message;
+  }
+});
+
+el("run-brief").addEventListener("click", async () => {
+  if (!selectedCaseId) return;
+  try {
+    const result = await api(`/cases/${selectedCaseId}/case-brief`, {
+      method: "POST",
+      body: JSON.stringify({})
+    });
+    el("runway-result").textContent = result.case_writer.model_called
+      ? `Live model prepared brief with ${result.case_writer.model_id}.`
+      : "Fallback brief prepared without model credentials.";
+    await selectCase(selectedCaseId);
+    await loadCases();
+    switchTab("review");
+  } catch (error) {
+    el("runway-result").textContent = error.message;
+  }
+});
+
+el("try-blocked-approve").addEventListener("click", async () => {
+  if (!selectedCaseId || !currentStory) return;
+  if (currentStory.readiness.ready_for_decision) {
+    el("runway-result").textContent = "This case is ready, so blocked-approve proof is not expected. Import a bank-mismatch or missing-evidence packet.";
+    return;
+  }
+  try {
+    await api(`/cases/${selectedCaseId}/decisions`, {
+      method: "POST",
+      body: JSON.stringify({
+        action: "APPROVE",
+        reviewer: { role: "REVIEWER", name: "Guardrail Tester" },
+        reason: "Intentional guardrail proof."
+      })
+    });
+    el("runway-result").textContent = "Unexpected: approval succeeded.";
+  } catch (error) {
+    el("runway-result").textContent = `Guardrail held: ${error.message}`;
+  }
+});
+
+el("request-evidence").addEventListener("click", async () => {
+  if (!selectedCaseId) return;
+  try {
+    const result = await api(`/cases/${selectedCaseId}/decisions`, {
+      method: "POST",
+      body: JSON.stringify({
+        action: "REQUEST_EVIDENCE",
+        reviewer: { role: "REVIEWER", name: "Finance Reviewer" },
+        reason: "Evidence is required before a payment decision can be made.",
+        required_evidence: ["Provide vendor bank confirmation or missing support for unresolved hard-gate rules."]
+      })
+    });
+    el("runway-result").textContent = `Human decision event recorded: ${result.decision_event.decision_event_id}.`;
+    await selectCase(selectedCaseId);
+    await loadCases();
+    switchTab("handoff");
+  } catch (error) {
+    el("runway-result").textContent = error.message;
+  }
+});
+
+el("open-handoff").addEventListener("click", () => {
+  if (!selectedCaseId) return;
+  switchTab("handoff");
+});
+
+el("import-demo-packback").addEventListener("click", async () => {
+  if (!selectedCaseId) return;
+  try {
+    const payload = JSON.parse(el("packback-form").payload.value);
+    const result = await api(`/cases/${selectedCaseId}/pack-back`, {
+      method: "POST",
+      body: JSON.stringify(payload)
+    });
+    el("runway-result").textContent = `Pack Back imported: ${result.pack_back.pack_back_id}.`;
+    await selectCase(selectedCaseId);
+    await loadCases();
+    switchTab("timeline");
+  } catch (error) {
+    el("runway-result").textContent = error.message;
+  }
 });
 
 el("clear-model-key").addEventListener("click", () => {
@@ -264,6 +418,7 @@ el("packback-form").addEventListener("submit", async (event) => {
   }
 });
 
-loadCases().catch((error) => {
+Promise.all([loadDemoIntakePackets(), loadCases()]).catch((error) => {
   el("case-list").innerHTML = `<p class="meta">${error.message}</p>`;
+  el("runway-result").textContent = error.message;
 });

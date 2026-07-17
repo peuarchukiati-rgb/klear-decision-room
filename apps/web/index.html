@@ -15,18 +15,53 @@
       <button id="refresh">Refresh</button>
     </header>
 
-    <main class="layout">
-      <section class="inbox">
+    <main>
+      <section class="runway">
         <div class="section-head">
-          <h2>Case Inbox</h2>
-          <span id="case-count">0 cases</span>
+          <div>
+            <h2>Start a Decision Lifecycle</h2>
+            <p class="meta">Import a clean handoff or messy intake note, then walk the case through truth, grounded AI, human decision, handoff, and pack back.</p>
+          </div>
+          <span id="runway-status" class="pill">No intake imported</span>
         </div>
-        <div id="case-list" class="case-list"></div>
+        <div class="intake-grid">
+          <label>Demo intake packet
+            <select id="packet-select"></select>
+          </label>
+          <div class="button-row runway-actions">
+            <button id="import-packet">Import Intake</button>
+            <button id="run-review">Run Truth Review</button>
+            <button id="run-brief">Prepare Brief</button>
+            <button id="try-blocked-approve">Try Blocked Approve</button>
+            <button id="request-evidence">Request Evidence</button>
+            <button id="open-handoff">Open Handoff</button>
+            <button id="import-demo-packback">Import Pack Back</button>
+          </div>
+        </div>
+        <div class="runway-steps" id="runway-steps">
+          <span class="step">1 Intake</span>
+          <span class="step">2 Truth</span>
+          <span class="step">3 Brief</span>
+          <span class="step">4 Human Decision</span>
+          <span class="step">5 Handoff</span>
+          <span class="step">6 Pack Back</span>
+        </div>
+        <pre id="packet-preview"></pre>
+        <pre id="runway-result"></pre>
       </section>
 
-      <section class="review">
-        <div id="empty-state" class="empty-state">Select a case to review.</div>
-        <div id="case-view" hidden>
+      <div class="layout">
+        <section class="inbox">
+          <div class="section-head">
+            <h2>Case Inbox</h2>
+            <span id="case-count">0 cases</span>
+          </div>
+          <div id="case-list" class="case-list"></div>
+        </section>
+
+        <section class="review">
+          <div id="empty-state" class="empty-state">Import or select a case to review.</div>
+          <div id="case-view" hidden>
           <div class="case-title">
             <div>
               <h2 id="case-title"></h2>
@@ -169,8 +204,9 @@
               <pre id="packback-result"></pre>
             </article>
           </section>
-        </div>
-      </section>
+          </div>
+        </section>
+      </div>
     </main>
 
     <script src="/app.js"></script>

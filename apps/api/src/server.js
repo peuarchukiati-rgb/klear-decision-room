@@ -14,6 +14,7 @@ import { writeGroundedCaseBrief } from "../../../packages/case-writer/src/index.
 import { CaseStore } from "../../../packages/case-store/src/caseStore.js";
 import { createHandoffArtifacts } from "../../../packages/handoff/src/handoffGenerator.js";
 import { importPackBack, submitHumanDecision } from "../../../packages/human-decision/src/index.js";
+import { importIntakePacket, listDemoIntakePackets } from "../../../packages/intake/src/index.js";
 import { runDeterministicReview } from "../../../packages/rules-engine/src/index.js";
 import { getModelConfig } from "../../../src/config/modelConfig.js";
 
@@ -111,6 +112,18 @@ export async function handleRequest(req, res, store = new CaseStore(), { fetchIm
     if (req.method === "GET" && pathname === "/cases") {
       const cases = await store.listCases();
       sendJson(res, 200, { cases });
+      return;
+    }
+
+    if (req.method === "GET" && pathname === "/demo-intake-packets") {
+      sendJson(res, 200, { packets: await listDemoIntakePackets() });
+      return;
+    }
+
+    if (req.method === "POST" && pathname === "/intake-packets") {
+      const body = await readJson(req);
+      const result = await importIntakePacket(store, body);
+      sendJson(res, 201, result);
       return;
     }
 

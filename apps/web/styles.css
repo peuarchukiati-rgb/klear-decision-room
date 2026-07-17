@@ -63,10 +63,60 @@ h3 {
   color: #5d6b65;
 }
 
+.runway {
+  padding: 16px 24px;
+  border-bottom: 1px solid #d7ddd7;
+  background: #eef4f0;
+}
+
+.intake-grid {
+  display: grid;
+  grid-template-columns: minmax(260px, 360px) 1fr;
+  gap: 14px;
+  align-items: end;
+  margin-top: 12px;
+}
+
+.runway-actions {
+  align-items: end;
+}
+
+.runway-steps {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 14px 0 10px;
+}
+
+.step {
+  border: 1px solid #cbd5cf;
+  border-radius: 6px;
+  padding: 6px 9px;
+  background: #ffffff;
+  color: #35413c;
+  font-size: 12px;
+}
+
+.step.done {
+  border-color: #1b6b57;
+  background: #f1f8f5;
+  color: #145541;
+}
+
+.step.blocked {
+  border-color: #9b332f;
+  background: #fbf2f1;
+  color: #7b211d;
+}
+
+#packet-preview, #runway-result {
+  max-height: 220px;
+}
+
 .layout {
   display: grid;
   grid-template-columns: minmax(280px, 360px) 1fr;
-  min-height: calc(100vh - 78px);
+  min-height: calc(100vh - 300px);
 }
 
 .inbox {
@@ -287,7 +337,7 @@ pre {
 }
 
 @media (max-width: 900px) {
-  .layout, .grid.two, .lane-banner, .compact-form {
+  .layout, .grid.two, .lane-banner, .compact-form, .intake-grid {
     grid-template-columns: 1fr;
   }
 

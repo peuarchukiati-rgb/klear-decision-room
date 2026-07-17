@@ -1,0 +1,14 @@
+Subject: urgent vendor payment check
+
+Please check invoice UN-5510 for Unmatched Field Services.
+
+Vendor ID is not available in the note.
+Invoice date: 2026-07-14
+Amount total: USD 2700.00
+Subtotal: 2500.00
+Tax not stated.
+Bank account missing from requester note.
+Bank name: Unknown
+PO/support not attached.
+
+Requested action: finance reviewer should decide whether this is payable or what evidence is required.

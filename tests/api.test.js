@@ -84,6 +84,60 @@ test("minimal API creates and versions a case", async () => {
   assert.equal(versioned.handoff.machine_readable.case_id, caseId);
 });
 
+test("API imports structured and messy intake packets as new decision cases", async () => {
+  const dataDir = await mkdtemp(path.join(os.tmpdir(), "klear-api-"));
+  const store = new CaseStore({ dataDir });
+
+  const packetsRes = await request({ method: "GET", url: "/demo-intake-packets", store });
+  assert.equal(packetsRes.status, 200);
+  const packets = packetsRes.json().packets;
+  const structured = packets.find((item) => item.packet_id === "DEMO-HANDOFF-SCN-CLEAN");
+  const messy = packets.find((item) => item.packet_id === "DEMO-MESSY-SCN-MISSING-VENDOR");
+
+  const structuredRes = await request({
+    method: "POST",
+    url: "/intake-packets",
+    body: { packet: structured.packet },
+    store
+  });
+  const messyRes = await request({
+    method: "POST",
+    url: "/intake-packets",
+    body: { packet: messy.packet },
+    store
+  });
+
+  assert.equal(structuredRes.status, 201);
+  assert.equal(structuredRes.json().case.input_records[0].payload.invoice_number, "INV-88904");
+  assert.equal(messyRes.status, 201);
+  assert.equal(messyRes.json().case.input_records[0].payload.invoice_number, "UN-5510");
+  assert.equal(messyRes.json().case.input_records[0].payload.vendor_id, "");
+});
+
+test("intake packet import rejects human decision bypass fields", async () => {
+  const dataDir = await mkdtemp(path.join(os.tmpdir(), "klear-api-"));
+  const store = new CaseStore({ dataDir });
+
+  const res = await request({
+    method: "POST",
+    url: "/intake-packets",
+    body: {
+      packet: {
+        packet_id: "BAD-HANDOFF",
+        packet_type: "STRUCTURED_HANDOFF",
+        human_decision_events: [],
+        invoice: {
+          invoice_number: "BAD-1"
+        }
+      }
+    },
+    store
+  });
+
+  assert.equal(res.status, 400);
+  assert.match(res.json().error, /human_decision_events/);
+});
+
 test("API runs deterministic review without changing human decision", async () => {
   const dataDir = await mkdtemp(path.join(os.tmpdir(), "klear-api-"));
   const store = new CaseStore({ dataDir });

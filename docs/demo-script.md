@@ -3,7 +3,7 @@
 Use one case to show the full loop:
 
 ```text
-Messy Input
+Structured Handoff or Messy Intake
 ↓
 Truth
 ↓
@@ -32,7 +32,18 @@ Open:
 http://127.0.0.1:8787/
 ```
 
-In another shell, seed a case:
+Primary path: use the **Start a Decision Lifecycle** runway in the reviewer console.
+
+1. Choose `STRUCTURED · SCN-BANK-MISMATCH` to show a good handoff that still contains a payment blocker, or choose `MESSY · SCN-MISSING-VENDOR` to show unstructured intake becoming explicit unknowns.
+2. Click **Import Intake**.
+3. Click **Run Truth Review**.
+4. Click **Prepare Brief**.
+5. Click **Try Blocked Approve** to prove AI and shortcuts cannot approve an evidence-required case.
+6. Click **Request Evidence**.
+7. Click **Open Handoff**.
+8. Click **Import Pack Back**.
+
+API fallback: in another shell, seed a case:
 
 ```bash
 CASE_ID=$(node scripts/seed-demo-case.js SCN-BANK-MISMATCH | node -e "let s='';process.stdin.on('data',d=>s+=d);process.stdin.on('end',()=>console.log(JSON.parse(s).case_id))")
@@ -41,8 +52,8 @@ echo $CASE_ID
 
 ## Walkthrough
 
-1. Open the Case Inbox and select the seeded case.
-2. Run deterministic review:
+1. Open the Case Inbox and select the imported or seeded case.
+2. Run deterministic review if you are using the API path:
 
 ```bash
 curl -X POST http://127.0.0.1:8787/cases/$CASE_ID/deterministic-review
