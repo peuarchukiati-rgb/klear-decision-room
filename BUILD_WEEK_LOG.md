@@ -25,3 +25,4 @@
 - Added in-console bring-your-own-key live model case-brief generation with request-scoped credentials, live/fallback badge, and tests confirming API keys are not persisted.
 - Added Phase 4.1 intake runway: structured handoff and messy intake packet import, demo packet API, reviewer-console lifecycle controls, and docs for intake-driven demos.
 - Added guided payment review simulation mode so the first screen presents the finance cutoff scenario, one-click bank-mismatch proof path, and good-vs-messy intake comparison.
+- Tightened guided demo ending so Pack Back is framed as handoff acknowledgement with evidence pending, preserving the thesis that the payment remains blocked until human-confirmed evidence arrives.

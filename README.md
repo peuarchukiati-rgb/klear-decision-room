@@ -77,7 +77,7 @@ Phase 4 exposes derived judge-facing intelligence without changing that source-o
 ## Walkthrough
 
 1. Open the reviewer console and click **Start Bank-Mismatch Demo**.
-2. Watch KLEAR import intake, run deterministic truth review, prepare a grounded brief, block unsafe approval, record a human evidence request, and import Pack Back.
+2. Watch KLEAR import intake, run deterministic truth review, prepare a grounded brief, block unsafe approval, record a human evidence request, and receive handoff acknowledgement while evidence remains pending.
 3. Inspect the selected case's normalized facts, readiness, traceability, timeline, handoff, and versions.
 4. Use **Compare Good vs Messy Intake** to see clean structured input become decision-ready while messy input preserves unknowns instead of guessing.
 
@@ -85,6 +85,12 @@ Example:
 
 ```bash
 npm start
+```
+
+For a clean rehearsal inbox before recording:
+
+```bash
+npm run reset-demo
 ```
 
 Open the reviewer console:

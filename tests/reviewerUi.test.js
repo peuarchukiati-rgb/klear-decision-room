@@ -13,6 +13,7 @@ test("static reviewer UI exposes Phase 4 operational panels", async () => {
     "Compare Good vs Messy Intake",
     "Reviewer Objective",
     "Proof Target",
+    "Handoff acknowledged, evidence pending",
     "Demo intake packet",
     "Import Intake",
     "Run Truth Review",
@@ -36,6 +37,7 @@ test("static reviewer UI exposes Phase 4 operational panels", async () => {
   assert.ok(js.includes("DEMO-HANDOFF-SCN-BANK-MISMATCH"));
   assert.ok(js.includes("DEMO-MESSY-SCN-MISSING-VENDOR"));
   assert.ok(js.includes("Unsafe approval blocked"));
+  assert.ok(js.includes("payment remains blocked"));
   assert.ok(js.includes("/case-brief"));
   assert.ok(js.includes("/decisions"));
   assert.ok(js.includes("/pack-back"));

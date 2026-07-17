@@ -106,8 +106,12 @@ function markProofStep(index, state = "done") {
 
 function clearProofSteps() {
   document.querySelectorAll("#runway-steps .step").forEach((step) => {
-    step.classList.remove("done", "blocked");
+    step.classList.remove("done", "blocked", "pending");
   });
+}
+
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 function updateRunway(story = currentStory) {
@@ -180,7 +184,7 @@ async function requestEvidenceDecision(caseId) {
       action: "REQUEST_EVIDENCE",
       reviewer: { role: "REVIEWER", name: "Finance Reviewer" },
       reason: "Evidence is required before a payment decision can be made.",
-      required_evidence: ["Provide vendor bank confirmation or missing support for unresolved hard-gate rules."]
+      required_evidence: ["Confirm the vendor's bank account directly before this payment can proceed."]
     })
   });
 }
@@ -350,6 +354,7 @@ el("start-live-demo").addEventListener("click", async () => {
     markProofStep(0);
     lines.push(`Intake received as ${decisionCase.case_id}.`);
     writeRunway(lines);
+    await sleep(650);
 
     const reviewed = await runTruthReview(decisionCase.case_id);
     const bankRule = reviewed.case.rule_results.find((rule) => rule.rule_id === "R-003");
@@ -357,12 +362,14 @@ el("start-live-demo").addEventListener("click", async () => {
     lines.push(`Truth lane result: ${bankRule.rule_id} ${bankRule.status} - ${bankRule.summary}`);
     writeRunway(lines);
     await selectCase(decisionCase.case_id);
+    await sleep(650);
 
     const brief = await prepareFallbackBrief(decisionCase.case_id);
     markProofStep(2);
     lines.push(brief.case_writer.model_called ? "Grounded case brief prepared by live model." : "Grounded case brief prepared by deterministic fallback.");
     writeRunway(lines);
     await selectCase(decisionCase.case_id);
+    await sleep(650);
 
     const approval = await attemptApproval(decisionCase.case_id);
     if (!approval.blocked) {
@@ -371,17 +378,19 @@ el("start-live-demo").addEventListener("click", async () => {
     markProofStep(3, "blocked");
     lines.push(`Unsafe approval blocked: ${approval.message}`);
     writeRunway(lines);
+    await sleep(650);
 
     const decision = await requestEvidenceDecision(decisionCase.case_id);
     markProofStep(4);
     lines.push(`Human decision recorded: ${decision.decision_event.decision_event_id} REQUEST_EVIDENCE.`);
     writeRunway(lines);
     await selectCase(decisionCase.case_id);
+    await sleep(650);
 
     const packBack = await importPackBackFromStory(currentStory);
-    markProofStep(5);
-    lines.push(`Pack Back received: ${packBack.pack_back.pack_back_id}.`);
-    lines.push("Proof complete: AI prepared the case, deterministic truth found the blocker, and only the human decision lane changed authority.");
+    markProofStep(5, "pending");
+    lines.push(`Handoff acknowledged: ${packBack.pack_back.pack_back_id}. Evidence is still pending.`);
+    lines.push("Proof: the payment remains blocked until a human confirms the vendor bank account. AI prepared the case, but never closed it.");
     writeRunway(lines);
     await selectCase(decisionCase.case_id);
     await loadCases();
@@ -403,15 +412,15 @@ el("compare-intakes").addEventListener("click", async () => {
 
   try {
     const clean = await importDemoPacket("DEMO-HANDOFF-SCN-CLEAN");
-    const cleanReview = await runTruthReview(clean.case_id);
+    await runTruthReview(clean.case_id);
     const cleanStory = (await api(`/cases/${clean.case_id}/decision-story`)).decision_story;
-    lines.push(`Good handoff ${clean.case_id}: ready=${cleanReview.deterministic_review.readiness.ready_for_decision}, blockers=${cleanStory.readiness.blocking_rule_count}, unknowns=${cleanStory.readiness.unknown_count}.`);
+    lines.push(`Good handoff ${clean.case_id}: decision-ready, ${cleanStory.readiness.blocking_rule_count} blockers, ${cleanStory.readiness.unknown_count} unknowns.`);
     writeRunway(lines);
 
     const messy = await importDemoPacket("DEMO-MESSY-SCN-MISSING-VENDOR");
-    const messyReview = await runTruthReview(messy.case_id);
+    await runTruthReview(messy.case_id);
     const messyStory = (await api(`/cases/${messy.case_id}/decision-story`)).decision_story;
-    lines.push(`Messy intake ${messy.case_id}: ready=${messyReview.deterministic_review.readiness.ready_for_decision}, blockers=${messyStory.readiness.blocking_rule_count}, unknowns=${messyStory.readiness.unknown_count}.`);
+    lines.push(`Messy intake ${messy.case_id}: not decision-ready, ${messyStory.readiness.blocking_rule_count} blockers, ${messyStory.readiness.unknown_count} unknowns.`);
     lines.push("Takeaway: KLEAR does not pretend messy input is complete. It preserves unknowns and asks for evidence.");
     writeRunway(lines);
 

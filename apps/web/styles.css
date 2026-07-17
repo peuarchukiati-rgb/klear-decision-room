@@ -157,6 +157,12 @@ button:disabled {
   color: #7b211d;
 }
 
+.step.pending {
+  border-color: #a66a1f;
+  background: #fff7e8;
+  color: #744714;
+}
+
 #packet-preview, #runway-result {
   max-height: 220px;
 }

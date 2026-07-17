@@ -96,6 +96,7 @@ This file records file-level reuse decisions for the current KLEAR Decision Room
 | `apps/web/index.html` | Extended with guided payment review simulation copy, intake controls, and one-click proof controls. |
 | `apps/web/app.js` | Extended with import, review, brief, guardrail, handoff, pack-back, one-click proof, and good-vs-messy comparison actions. |
 | `apps/web/styles.css` | Extended with operational styling for the intake runway and lifecycle steps. |
+| `scripts/reset-demo-storage.js` | New local rehearsal helper that clears generated demo case storage without touching source files. |
 
 ## Current Reuse Boundary
 
