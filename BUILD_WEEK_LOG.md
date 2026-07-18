@@ -33,3 +33,4 @@
 - Added a two-beat fresh-session introduction and a restrained Run Demo cue so judges enter the finance decision through one concrete Friday cutoff story.
 - Made blocked approval attempts auditable as versioned history events while preserving status, `human_decision`, and canonical `human_decision_events` unchanged.
 - Changed the topbar demo control into a high-contrast one-click `Run Demo` action and made `Refresh` reset only the presentation state to the blank post-intro workspace without deleting cases or audit history.
+- Cleared request-scoped API keys from the reviewer form and in-memory credential state immediately after successful case-brief generation while retaining the configured model ID.

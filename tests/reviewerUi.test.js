@@ -59,5 +59,6 @@ test("static reviewer UI exposes Phase 4 operational panels", async () => {
   assert.ok(js.includes("/pack-back"));
   assert.ok(js.includes("LIVE MODEL"));
   assert.ok(js.includes("beforeunload"));
+  assert.match(js, /await api\(`\/cases\/\$\{selectedCaseId\}\/case-brief`[\s\S]*clearLiveModelApiKey\(form\)/);
   assert.ok(js.includes("confirm("));
 });
