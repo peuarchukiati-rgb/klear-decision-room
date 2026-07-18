@@ -41,7 +41,10 @@
       </div>
       <div class="topbar-context">
         <span class="workspace-name">Finance Approval Workspace</span>
-        <button id="show-demo" class="topbar-demo-button demo-cta-pulse">Run Demo</button>
+        <button id="show-demo" class="topbar-demo-button demo-cta-pulse" aria-label="Run Demo">
+          <span>Live proof</span>
+          <strong>Run Demo</strong>
+        </button>
         <button id="refresh" class="quiet-button" title="Reset workspace view">Refresh</button>
       </div>
     </header>
@@ -49,9 +52,9 @@
     <main class="workspace">
       <section id="demo-runner" class="demo-runner" aria-label="Guided demo">
         <div class="demo-prompt">
-          <span class="eyebrow">Guided scenario</span>
-          <strong>One payment. One mismatched bank account. One human decision.</strong>
-          <span class="meta">See how KLEAR keeps the payment blocked while the evidence catches up.</span>
+          <span class="eyebrow">Guided review</span>
+          <strong>Check the case in detail. Prepare the evidence. Hand it to a human to decide.</strong>
+          <span class="meta">KLEAR verifies what is known, preserves what is unknown, and never owns the decision.</span>
         </div>
         <div class="button-row demo-actions">
           <button id="start-live-demo" class="primary-action">Run Bank-Mismatch Demo</button>

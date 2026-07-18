@@ -9,6 +9,8 @@ test("static reviewer UI exposes Phase 4 operational panels", async () => {
   for (const label of [
     "Live Demo Mode",
     "Payment Review Simulation",
+    "Check the case in detail. Prepare the evidence. Hand it to a human to decide.",
+    "KLEAR verifies what is known, preserves what is unknown, and never owns the decision.",
     "Run Demo",
     "Run Bank-Mismatch Demo",
     "Every day, someone has to approve a payment before it goes out",
