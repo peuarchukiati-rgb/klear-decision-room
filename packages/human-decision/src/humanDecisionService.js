@@ -62,11 +62,8 @@ function validateAction(decisionCase, body, policy) {
   const reason = requireText(body.reason, "decision reason");
   const readiness = deriveCaseReadiness(decisionCase, policy);
 
-  if (action === HumanDecision.APPROVE) {
-    if (!readiness.ready_for_decision || hasHardGateBlocker(decisionCase, policy)) {
-      throw new Error("APPROVE requires the case to be ready for decision with no hard-gate blockers");
-    }
-  }
+  const approvalBlocked = action === HumanDecision.APPROVE &&
+    (!readiness.ready_for_decision || hasHardGateBlocker(decisionCase, policy));
 
   if (action === HumanDecision.REQUEST_EVIDENCE) {
     const requiredEvidence = body.required_evidence || [];
@@ -79,7 +76,7 @@ function validateAction(decisionCase, body, policy) {
     requireOwner(body.escalation_target || body.next_owner, "escalation_target or next_owner");
   }
 
-  return { action, reviewer, reason, readiness };
+  return { action, reviewer, reason, readiness, approvalBlocked };
 }
 
 export async function submitHumanDecision(
@@ -90,7 +87,26 @@ export async function submitHumanDecision(
 ) {
   const decisionCase = await caseStore.getCase(caseId);
   const activePolicy = policy || (await loadReadinessPolicy());
-  const { action, reviewer, reason, readiness } = validateAction(decisionCase, body, activePolicy);
+  const { action, reviewer, reason, readiness, approvalBlocked } = validateAction(
+    decisionCase,
+    body,
+    activePolicy
+  );
+
+  if (approvalBlocked) {
+    await caseStore.versionCase(
+      caseId,
+      {},
+      {
+        actor: reviewer,
+        change_type: HistoryChangeType.DECISION_BLOCKED,
+        note: "Approval blocked: case not ready for decision / hard-gate blocker present.",
+        source_event: "blocked_decision_attempt"
+      }
+    );
+    throw new Error("APPROVE requires the case to be ready for decision with no hard-gate blockers");
+  }
+
   const timestamp = body.timestamp || new Date().toISOString();
   const existingEvents = decisionCase.human_decision_events || [];
   const decisionEvent = {

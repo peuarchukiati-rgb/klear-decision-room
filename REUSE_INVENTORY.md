@@ -107,6 +107,18 @@ This file records file-level reuse decisions for the current KLEAR Decision Room
 | `apps/web/styles.css` | Added the newly written folder workspace, reduced-chrome artifact shelf, focused document viewer, and responsive mobile presentation. No prior UI source code copied. |
 | `tests/reviewerUi.test.js` | Updated smoke coverage for the Living Decision Folder and portable artifact boundary. |
 
+## Demo Polish
+
+| Destination | New work description |
+| --- | --- |
+| `scripts/seed-demo-queue.js` | New deterministic rehearsal seed path for four distinct synthetic finance cases using the existing intake and truth lanes. |
+| `apps/web/index.html` | Added a newly written two-beat finance scenario introduction; no prior UI copy or assets reused. |
+| `apps/web/app.js` | Added curated-hero reuse, intro state, presentation-only vendor fallback, and a restrained post-intro demo cue. |
+| `apps/web/styles.css` | Added newly written intro and demo-cue styling consistent with the operational workspace. |
+| `packages/human-decision/src/humanDecisionService.js` | Added a runtime guardrail audit path that versions blocked approval attempts without creating decision events or changing decision state. |
+| `packages/case-insights/src/timeline.js` | Added the derived “Unsafe approval blocked” timeline label from persisted case history. |
+| `tests/demoQueue.test.js`, `tests/humanDecision.test.js`, `tests/reviewerUi.test.js` | Added deterministic queue, blocked-attempt invariant, and intro presentation coverage. |
+
 ## Current Reuse Boundary
 
 - `source_code_copied`: none

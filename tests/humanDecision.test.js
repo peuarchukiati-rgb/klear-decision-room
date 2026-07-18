@@ -3,7 +3,7 @@ import { readFile, mkdtemp } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import test from "node:test";
-import { deriveDecisionStory } from "../packages/case-insights/src/index.js";
+import { deriveDecisionStory, deriveDecisionTimeline } from "../packages/case-insights/src/index.js";
 import { CaseStore } from "../packages/case-store/src/caseStore.js";
 import { OwnerRole, createOwner } from "../packages/case-schema/src/index.js";
 import { createHandoffArtifacts } from "../packages/handoff/src/handoffGenerator.js";
@@ -75,6 +75,9 @@ test("human decision events are canonical and human_decision is latest snapshot"
 
 test("approve is blocked when readiness is false", async () => {
   const { store, reviewed } = await reviewedScenario("SCN-BANK-MISMATCH");
+  const decisionBefore = structuredClone(reviewed.human_decision);
+  const eventCountBefore = reviewed.human_decision_events.length;
+  const statusBefore = reviewed.status;
 
   await assert.rejects(
     submitHumanDecision(store, reviewed.case_id, {
@@ -84,6 +87,23 @@ test("approve is blocked when readiness is false", async () => {
     }),
     /ready for decision/
   );
+
+  const audited = await store.getCase(reviewed.case_id);
+  assert.equal(audited.version, reviewed.version + 1);
+  assert.equal(audited.status, statusBefore);
+  assert.deepEqual(audited.human_decision, decisionBefore);
+  assert.equal(audited.human_decision_events.length, eventCountBefore);
+
+  const blockedEvents = audited.history.filter(
+    (event) => event.source_event === "blocked_decision_attempt"
+  );
+  assert.equal(blockedEvents.length, 1);
+  assert.equal(blockedEvents[0].change_type, "DECISION_BLOCKED");
+  assert.equal(blockedEvents[0].actor.name, reviewer.name);
+  assert.deepEqual(blockedEvents[0].changed_fields, []);
+
+  const timeline = deriveDecisionTimeline(audited);
+  assert.equal(timeline.events.at(-1).label, "Unsafe approval blocked");
 });
 
 test("invalid human transitions require action-specific fields", async () => {

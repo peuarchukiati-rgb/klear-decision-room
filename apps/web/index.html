@@ -7,6 +7,30 @@
     <link rel="stylesheet" href="/styles.css">
   </head>
   <body>
+    <section id="intro-overlay" class="intro-overlay" role="dialog" aria-modal="true" aria-label="KLEAR demo introduction" hidden>
+      <div class="intro-brand">
+        <span class="brand-mark">K</span>
+        <span>KLEAR Decision Room</span>
+      </div>
+      <button id="skip-intro" class="intro-skip">Skip intro</button>
+
+      <div id="intro-slide-1" class="intro-slide">
+        <span class="intro-count">01 / 02</span>
+        <p class="intro-kicker">The decision problem</p>
+        <h2>Every day, someone has to approve a payment before it goes out — with no fast way to prove it's safe.</h2>
+        <p>Operational evidence is scattered across invoices, email, vendor records, and policy. The decision still belongs to a person.</p>
+        <button id="intro-next" class="intro-action">Next</button>
+      </div>
+
+      <div id="intro-slide-2" class="intro-slide" hidden>
+        <span class="intro-count">02 / 02</span>
+        <p class="intro-kicker">This case</p>
+        <h2>It's Friday, 4:15 PM. This invoice looks normal. One detail is wrong: the bank account doesn't match the approved vendor master.</h2>
+        <p>KLEAR will verify the case, prepare the evidence, and keep decision authority with the reviewer.</p>
+        <button id="intro-continue" class="intro-action primary-action">Continue to workspace</button>
+      </div>
+    </section>
+
     <header class="topbar">
       <div class="brand-lockup">
         <span class="brand-mark">K</span>

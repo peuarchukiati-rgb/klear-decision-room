@@ -8,6 +8,9 @@ let liveModelCredentials = {
 let currentBriefMarkdown = "";
 let currentHandoffMarkdown = "";
 let demoRunnerPinned = false;
+let curatedHeroCaseId = null;
+let introActive = false;
+const INTRO_DISMISSED_KEY = "klear-demo-intro-v1";
 
 async function api(path, options = {}) {
   const response = await fetch(path, {
@@ -59,8 +62,9 @@ function formatTime(timestamp) {
 
 function vendorFromCase(decisionCase) {
   const fact = decisionCase.facts.find((item) => item.field === "vendor_name");
-  if (fact) return fact.value;
-  return decisionCase.input_records.find((item) => item.source_type === "INVOICE")?.payload?.vendor_name || "Unknown vendor";
+  if (fact?.value && String(fact.value).trim()) return fact.value;
+  const invoiceName = decisionCase.input_records.find((item) => item.source_type === "INVOICE")?.payload?.vendor_name;
+  return invoiceName && String(invoiceName).trim() ? invoiceName : "Unnamed vendor (see intake)";
 }
 
 function severityFromCase(decisionCase) {
@@ -99,6 +103,24 @@ function switchTab(tabName) {
 
 function revealDemoStage() {
   el("demo-stage").hidden = false;
+}
+
+function initializeIntro() {
+  if (sessionStorage.getItem(INTRO_DISMISSED_KEY)) return;
+  introActive = true;
+  el("intro-overlay").hidden = false;
+  document.body.classList.add("intro-open");
+}
+
+function dismissIntro({ pulse = true } = {}) {
+  sessionStorage.setItem(INTRO_DISMISSED_KEY, "dismissed");
+  introActive = false;
+  el("intro-overlay").hidden = true;
+  document.body.classList.remove("intro-open");
+  demoRunnerPinned = true;
+  el("demo-runner").hidden = false;
+  el("show-demo").hidden = true;
+  el("start-live-demo").classList.toggle("demo-cta-pulse", pulse);
 }
 
 function artifactCopy(name, content) {
@@ -288,6 +310,10 @@ async function importPackBackFromStory(story) {
 async function loadCases() {
   const { cases } = await api("/cases");
   const hasCases = cases.length > 0;
+  curatedHeroCaseId = cases.find((decisionCase) => {
+    const bankRule = decisionCase.rule_results.find((rule) => rule.rule_id === "R-003");
+    return bankRule?.status === "FAIL" && !(decisionCase.human_decision_events || []).length;
+  })?.case_id || null;
   el("demo-runner").hidden = hasCases && !demoRunnerPinned;
   el("show-demo").hidden = !hasCases || demoRunnerPinned;
   el("case-count").textContent = `${cases.length}`;
@@ -302,13 +328,14 @@ async function loadCases() {
   document.querySelectorAll("[data-case-id]").forEach((button) => {
     button.addEventListener("click", () => selectCase(button.dataset.caseId));
   });
-  if (!selectedCaseId && cases[0]) {
+  if (!selectedCaseId && cases[0] && !introActive) {
     await selectCase(cases[0].case_id);
   }
 }
 
 async function selectCase(caseId) {
   selectedCaseId = caseId;
+  el("start-live-demo").classList.remove("demo-cta-pulse");
   const { decision_story } = await api(`/cases/${caseId}/decision-story`);
   currentStory = decision_story;
   renderCase(decision_story);
@@ -540,6 +567,12 @@ el("next-action-button").addEventListener("click", () => {
 });
 
 el("refresh").addEventListener("click", loadCases);
+el("intro-next").addEventListener("click", () => {
+  el("intro-slide-1").hidden = true;
+  el("intro-slide-2").hidden = false;
+});
+el("intro-continue").addEventListener("click", () => dismissIntro());
+el("skip-intro").addEventListener("click", () => dismissIntro());
 el("show-demo").addEventListener("click", () => {
   demoRunnerPinned = true;
   el("demo-runner").hidden = false;
@@ -556,6 +589,7 @@ window.addEventListener("beforeunload", () => {
 });
 
 el("start-live-demo").addEventListener("click", async () => {
+  el("start-live-demo").classList.remove("demo-cta-pulse");
   setRunwayBusy(true);
   clearProofSteps();
   const lines = [
@@ -565,13 +599,24 @@ el("start-live-demo").addEventListener("click", async () => {
   writeRunway(lines);
 
   try {
-    const decisionCase = await importDemoPacket("DEMO-HANDOFF-SCN-BANK-MISMATCH");
+    let decisionCase;
+    let reusedCuratedHero = false;
+    if (curatedHeroCaseId) {
+      decisionCase = (await api(`/cases/${curatedHeroCaseId}`)).case;
+      reusedCuratedHero = true;
+      selectedCaseId = decisionCase.case_id;
+      await selectCase(decisionCase.case_id);
+    } else {
+      decisionCase = await importDemoPacket("DEMO-HANDOFF-SCN-BANK-MISMATCH");
+    }
     markProofStep(0);
     lines.push(`Intake received as ${decisionCase.case_id}.`);
     writeRunway(lines);
     await sleep(650);
 
-    const reviewed = await runTruthReview(decisionCase.case_id);
+    const reviewed = reusedCuratedHero
+      ? { case: decisionCase }
+      : await runTruthReview(decisionCase.case_id);
     const bankRule = reviewed.case.rule_results.find((rule) => rule.rule_id === "R-003");
     markProofStep(1);
     lines.push(`Truth lane result: ${bankRule.rule_id} ${bankRule.status} - ${bankRule.summary}`);
@@ -579,7 +624,12 @@ el("start-live-demo").addEventListener("click", async () => {
     await selectCase(decisionCase.case_id);
     await sleep(650);
 
-    const brief = await prepareFallbackBrief(decisionCase.case_id);
+    const brief = reusedCuratedHero
+      ? {
+          case: decisionCase,
+          case_writer: { model_called: decisionCase.ai_case_brief?.writer_mode === "openai" }
+        }
+      : await prepareFallbackBrief(decisionCase.case_id);
     markProofStep(2);
     lines.push(brief.case_writer.model_called ? "Grounded case brief prepared by live model." : "Grounded case brief prepared by deterministic fallback.");
     writeRunway(lines);
@@ -817,6 +867,8 @@ el("packback-form").addEventListener("submit", async (event) => {
     el("packback-result").textContent = error.message;
   }
 });
+
+initializeIntro();
 
 Promise.all([loadDemoIntakePackets(), loadCases()]).catch((error) => {
   el("case-list").innerHTML = `<p class="meta">${error.message}</p>`;

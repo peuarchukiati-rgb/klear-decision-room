@@ -29,3 +29,6 @@
 - Reframed the reviewer console as a Living Decision Folder: current state, primary finding, and next human action stay visible while evidence and immutable history remain focused folder sections.
 - Moved grounded briefs, decision handoffs, and pack backs into portable artifact views with copy/download affordances, protocol metadata, and collapsed raw Markdown/machine-readable detail.
 - Completed a visual compression pass: made Finance Approval explicit as the current workspace, collapsed demo controls after intake, removed duplicate status and authority panels, reduced artifact chrome, and kept one dominant next action.
+- Added a deterministic four-case demo queue with bank mismatch as the hero, followed by duplicate, missing-vendor, and clean scenarios.
+- Added a two-beat fresh-session introduction and a restrained Run Demo cue so judges enter the finance decision through one concrete Friday cutoff story.
+- Made blocked approval attempts auditable as versioned history events while preserving status, `human_decision`, and canonical `human_decision_events` unchanged.

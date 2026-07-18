@@ -2,6 +2,7 @@ const LABELS_BY_SOURCE_EVENT = {
   api: "Case saved",
   deterministic_review: "Deterministic review completed",
   grounded_case_writer: "Grounded case brief prepared",
+  blocked_decision_attempt: "Unsafe approval blocked",
   human_decision: "Human decision recorded",
   pack_back: "Pack-back update recorded"
 };
@@ -13,6 +14,7 @@ const LABELS_BY_CHANGE_TYPE = {
   EVIDENCE_ADDED: "Evidence added",
   STATUS_CHANGED: "Status changed",
   OWNER_CHANGED: "Owner changed",
+  DECISION_BLOCKED: "Unsafe approval blocked",
   HUMAN_DECISION_RECORDED: "Human decision recorded",
   PACK_BACK_RECORDED: "Pack-back update recorded"
 };

@@ -10,6 +10,9 @@ test("static reviewer UI exposes Phase 4 operational panels", async () => {
     "Live Demo Mode",
     "Payment Review Simulation",
     "Run Bank-Mismatch Demo",
+    "Every day, someone has to approve a payment before it goes out",
+    "It's Friday, 4:15 PM. This invoice looks normal",
+    "Continue to workspace",
     "Compare Good vs Messy Intake",
     "Finance Approval Workspace",
     "Approvals",
@@ -43,6 +46,9 @@ test("static reviewer UI exposes Phase 4 operational panels", async () => {
   assert.ok(js.includes("klear-case-brief/v1"));
   assert.ok(js.includes("klear-handoff/v1"));
   assert.ok(js.includes("openArtifact"));
+  assert.ok(js.includes("Unnamed vendor (see intake)"));
+  assert.ok(js.includes("demo-cta-pulse"));
+  assert.ok(js.includes("INTRO_DISMISSED_KEY"));
   assert.ok(js.includes("/case-brief"));
   assert.ok(js.includes("/decisions"));
   assert.ok(js.includes("/pack-back"));

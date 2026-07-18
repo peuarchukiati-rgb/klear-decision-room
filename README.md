@@ -91,11 +91,13 @@ Example:
 npm start
 ```
 
-For a clean rehearsal inbox before recording:
+For a clean rehearsal queue before recording, seed four distinct reviewed cases (bank mismatch, duplicate, missing vendor, and clean):
 
 ```bash
-npm run reset-demo
+npm run seed-demo-queue
 ```
+
+Use `npm run reset-demo` only when you want an empty workspace.
 
 Open the reviewer console:
 
