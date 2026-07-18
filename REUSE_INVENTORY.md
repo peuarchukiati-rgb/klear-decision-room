@@ -102,9 +102,9 @@ This file records file-level reuse decisions for the current KLEAR Decision Room
 
 | Destination | New work description |
 | --- | --- |
-| `apps/web/index.html` | Reframed the operational console as a Living Decision Folder with focused overview, evidence, decision, and history sections plus portable artifact viewers. |
-| `apps/web/app.js` | Added derived current-state, primary-finding, next-action, artifact-document, and handoff-lineage presentation without creating a new source of truth. |
-| `apps/web/styles.css` | Added the newly written folder workspace, artifact shelf, focused document viewer, and responsive mobile presentation. No prior UI source code copied. |
+| `apps/web/index.html` | Reframed the operational console as a visually compressed Living Decision Folder with a concrete Finance Approval workspace, focused overview, evidence, decision, and history sections, plus portable artifact viewers. |
+| `apps/web/app.js` | Added derived current-state, primary-finding, next-action, demo-disclosure, artifact-document, and handoff-lineage presentation without creating a new source of truth. |
+| `apps/web/styles.css` | Added the newly written folder workspace, reduced-chrome artifact shelf, focused document viewer, and responsive mobile presentation. No prior UI source code copied. |
 | `tests/reviewerUi.test.js` | Updated smoke coverage for the Living Decision Folder and portable artifact boundary. |
 
 ## Current Reuse Boundary

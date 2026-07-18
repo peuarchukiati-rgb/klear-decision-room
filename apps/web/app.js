@@ -7,6 +7,7 @@ let liveModelCredentials = {
 };
 let currentBriefMarkdown = "";
 let currentHandoffMarkdown = "";
+let demoRunnerPinned = false;
 
 async function api(path, options = {}) {
   const response = await fetch(path, {
@@ -286,6 +287,9 @@ async function importPackBackFromStory(story) {
 
 async function loadCases() {
   const { cases } = await api("/cases");
+  const hasCases = cases.length > 0;
+  el("demo-runner").hidden = hasCases && !demoRunnerPinned;
+  el("show-demo").hidden = !hasCases || demoRunnerPinned;
   el("case-count").textContent = `${cases.length}`;
   el("case-list").innerHTML = cases.map((decisionCase) => `
     <button class="case-card ${decisionCase.case_id === selectedCaseId ? "selected" : ""}" data-case-id="${decisionCase.case_id}">
@@ -325,9 +329,9 @@ function renderCase(story) {
   el("case-folder-id").textContent = decisionCase.case_id;
   el("case-title").textContent = vendorFromCase(decisionCase);
   el("case-subtitle").textContent = `${invoiceNumber} · ${formatMoney(decisionCase)} · Owner: ${owner} · Updated ${formatTime(latestTimestamp)}`;
+  el("case-health-summary").textContent = `${story.readiness.blocking_rule_count} blocker${story.readiness.blocking_rule_count === 1 ? "" : "s"} · Evidence ${story.readiness.evidence_completeness_percent}% · Policy ${story.readiness.policy_coverage_percent}%`;
   el("case-status").textContent = formatStatus(decisionCase.status);
-  el("case-readiness").textContent = story.readiness.ready_for_decision ? "Ready for decision" : "Evidence required";
-  el("case-readiness").className = `pill ${story.readiness.ready_for_decision ? "ready" : "blocked"}`;
+  el("case-status").className = `pill ${story.readiness.ready_for_decision ? "ready" : "blocked"}`;
 
   el("facts").innerHTML = decisionCase.facts.map((fact) => `<dt>${fact.field}</dt><dd>${fact.value}</dd>`).join("") || "<p class=\"meta\">No normalized facts yet.</p>";
   el("readiness").innerHTML = `
@@ -448,7 +452,7 @@ function renderCaseWriterBadge(aiBrief = {}) {
     badge.textContent = `LIVE MODEL: ${aiBrief.model_id || "configured model"}`;
     badge.className = "pill ready";
   } else {
-    badge.textContent = aiBrief.writer_mode === "fallback" ? "FALLBACK (no key)" : "NO BRIEF";
+    badge.textContent = aiBrief.writer_mode === "fallback" ? "OFFLINE BRIEF" : "NOT PREPARED";
     badge.className = "pill";
   }
 }
@@ -536,6 +540,16 @@ el("next-action-button").addEventListener("click", () => {
 });
 
 el("refresh").addEventListener("click", loadCases);
+el("show-demo").addEventListener("click", () => {
+  demoRunnerPinned = true;
+  el("demo-runner").hidden = false;
+  el("show-demo").hidden = true;
+});
+el("hide-demo").addEventListener("click", () => {
+  demoRunnerPinned = false;
+  el("demo-runner").hidden = Boolean(selectedCaseId);
+  el("show-demo").hidden = !selectedCaseId;
+});
 el("packet-select").addEventListener("change", renderSelectedPacket);
 window.addEventListener("beforeunload", () => {
   liveModelCredentials = { api_key: "", model_id: "" };

@@ -162,7 +162,7 @@ The reviewer console also supports a bring-your-own-key live model run for judge
 2. Select a reviewed case.
 3. Open the `case-brief.md` artifact, expand **Generate with a configured model**, and paste an OpenAI API key and a `Model ID`.
 4. Use the smallest suitable model to prove the architecture, not model size, carries the trust boundary.
-5. Click **Generate Brief** and watch the badge change from `FALLBACK (no key)` to `LIVE MODEL`.
+5. Click **Generate Brief** and watch the badge change from `OFFLINE BRIEF` to `LIVE MODEL`.
 
 The key is sent only from the browser to the local API for that one request. It is not stored in `DecisionCase`, version snapshots, handoff artifacts, history, or any file under `storage/`. This is a localhost demo convenience, not a hosted secret-management flow.
 

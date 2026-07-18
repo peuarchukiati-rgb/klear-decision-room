@@ -67,7 +67,7 @@ curl -X POST http://127.0.0.1:8787/cases/$CASE_ID/case-brief
 
 4. Refresh the reviewer console.
 5. Inspect normalized facts, readiness, rule results, unknowns, traceability, and Decision Timeline.
-6. Optional live model beat: open the `case-brief.md` artifact, expand **Generate with a configured model**, paste an OpenAI API key and the smallest model ID you can use, then click **Generate Brief**. The badge should flip from `FALLBACK (no key)` to `LIVE MODEL`.
+6. Optional live model beat: open the `case-brief.md` artifact, expand **Generate with a configured model**, paste an OpenAI API key and the smallest model ID you can use, then click **Generate Brief**. The badge should flip from `OFFLINE BRIEF` to `LIVE MODEL`.
 7. Submit `REQUEST_EVIDENCE` with reviewer identity, reason, and required evidence.
 8. Open the Handoff view and inspect Markdown plus JSON. Point out:
    - `handoff_id`

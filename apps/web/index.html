@@ -16,13 +16,14 @@
         </div>
       </div>
       <div class="topbar-context">
-        <span>Where AI prepares decisions without owning them.</span>
+        <span class="workspace-name">Finance Approval Workspace</span>
+        <button id="show-demo" class="quiet-button">Demo</button>
         <button id="refresh" class="quiet-button" title="Refresh cases">Refresh</button>
       </div>
     </header>
 
     <main class="workspace">
-      <section class="demo-runner" aria-label="Guided demo">
+      <section id="demo-runner" class="demo-runner" aria-label="Guided demo">
         <div class="demo-prompt">
           <span class="eyebrow">Guided scenario</span>
           <strong>One payment. One mismatched bank account. One human decision.</strong>
@@ -35,6 +36,7 @@
             <div class="demo-menu-body">
               <button id="compare-intakes">Compare Good vs Messy Intake</button>
               <button id="open-console">Open case workspace</button>
+              <button id="hide-demo">Hide demo controls</button>
             </div>
           </details>
         </div>
@@ -82,12 +84,12 @@
         <aside class="inbox">
           <div class="inbox-title">
             <div>
-              <span class="eyebrow">Workspace</span>
-              <h2>Decision cases</h2>
+              <span class="eyebrow">Finance workspace</span>
+              <h2>Approvals</h2>
             </div>
             <span id="case-count" class="count-badge">0</span>
           </div>
-          <p class="inbox-copy">Open work requiring a verified human decision.</p>
+          <p class="inbox-copy">Payments waiting for review.</p>
           <div id="case-list" class="case-list"></div>
         </aside>
 
@@ -101,7 +103,7 @@
           <div id="case-view" class="decision-folder" hidden>
             <header class="folder-cover">
               <div class="breadcrumbs">
-                <span>Decision cases</span>
+                <span>Finance approvals</span>
                 <span>/</span>
                 <span id="case-folder-id"></span>
               </div>
@@ -110,17 +112,16 @@
                   <span id="case-context" class="eyebrow">Finance payment review</span>
                   <h2 id="case-title"></h2>
                   <p id="case-subtitle"></p>
+                  <p id="case-health-summary" class="case-health-summary"></p>
                 </div>
                 <div class="status-stack">
                   <span id="case-status" class="pill"></span>
-                  <span id="case-readiness" class="pill"></span>
                 </div>
               </div>
 
               <section class="next-action">
-                <div class="next-action-marker">Next</div>
                 <div>
-                  <span class="eyebrow">Your next action</span>
+                  <span class="next-label">Next action</span>
                   <h3 id="next-action-title">Review this case</h3>
                   <p id="next-action-detail"></p>
                 </div>
@@ -137,24 +138,26 @@
 
             <div class="folder-body">
               <section id="tab-review" class="tab-panel">
+                <div class="authority-note">
+                  <strong>AI prepared this case.</strong>
+                  <span>Only an explicit human action can decide it.</span>
+                </div>
                 <div class="overview-grid">
                   <div class="overview-main">
                     <section class="finding-panel">
-                      <div class="section-head">
-                        <div>
-                          <span class="eyebrow">What KLEAR found</span>
-                          <h3 id="primary-finding">Review pending</h3>
-                        </div>
+                      <div class="finding-heading">
+                        <span class="section-label">What happened</span>
                         <span id="primary-finding-status" class="finding-status">Pending</span>
                       </div>
+                      <h3 id="primary-finding">Review pending</h3>
                       <p id="primary-finding-detail"></p>
                       <button id="inspect-finding" class="text-button">Inspect supporting evidence</button>
                     </section>
 
                     <section class="case-brief-preview">
-                      <div class="section-head">
+                      <div class="document-section-head">
                         <div>
-                          <span class="eyebrow">Prepared context</span>
+                          <span class="section-label">Prepared context</span>
                           <h3>Grounded case brief</h3>
                         </div>
                         <span id="case-writer-badge" class="pill">NO BRIEF</span>
@@ -165,35 +168,17 @@
                   </div>
 
                   <aside class="overview-side">
-                    <section class="authority-panel">
-                      <span class="eyebrow">Decision authority</span>
-                      <div class="authority-row ai-authority">
-                        <strong>AI prepares</strong>
-                        <span>Context and grounded writing</span>
-                      </div>
-                      <div class="authority-row human-authority">
-                        <strong>Human decides</strong>
-                        <span>Only explicit actions change authority</span>
-                      </div>
-                    </section>
-
-                    <section class="readiness-panel">
-                      <span class="eyebrow">Case readiness</span>
-                      <div id="readiness"></div>
-                    </section>
-
                     <section class="decision-snapshot-panel">
-                      <span class="eyebrow">Latest human event</span>
+                      <span class="section-label">Latest human event</span>
                       <div id="decision-snapshot"></div>
                     </section>
 
                     <section class="artifacts-panel">
                       <div class="section-head">
-                        <span class="eyebrow">Portable artifacts</span>
+                        <span class="section-label">Files</span>
                         <span class="artifact-count">3 files</span>
                       </div>
                       <button class="artifact-file" data-artifact="brief">
-                        <span class="file-type">MD</span>
                         <span>
                           <strong id="brief-filename">case-brief.md</strong>
                           <small id="brief-file-meta">Prepared case context</small>
@@ -201,7 +186,6 @@
                         <span class="file-action">Open</span>
                       </button>
                       <button class="artifact-file" data-artifact="handoff">
-                        <span class="file-type handoff-type">MD</span>
                         <span>
                           <strong id="handoff-filename">decision-handoff.md</strong>
                           <small id="handoff-file-meta">Latest state transfer</small>
@@ -209,7 +193,6 @@
                         <span class="file-action">Open</span>
                       </button>
                       <button class="artifact-file" data-artifact="packback">
-                        <span class="file-type packback-type">JSON</span>
                         <span>
                           <strong>pack-back.json</strong>
                           <small id="packback-file-meta">Return an update to this case</small>
@@ -217,6 +200,11 @@
                         <span class="file-action">Import</span>
                       </button>
                     </section>
+
+                    <details class="readiness-details">
+                      <summary>Readiness details</summary>
+                      <div id="readiness"></div>
+                    </details>
                   </aside>
                 </div>
 
