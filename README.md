@@ -147,6 +147,10 @@ KLEAR uses handoff as a state-transfer protocol, not a loose summary. The protoc
 ## Run
 
 ```bash
+git clone https://github.com/peuarchukiati-rgb/klear-decision-room.git
+cd klear-decision-room
+npm install
+npm run seed-demo-queue
 npm start
 ```
 
@@ -175,6 +179,12 @@ npm test
 ```
 
 The tests cover deterministic rules, evidence citation integrity, model-output validation, human-decision immutability, explicit decision transitions, immutable versions, handoff lineage, pack-back guards, readiness, traceability, timeline, Decision Story, reviewer UI smoke coverage, and README product positioning.
+
+## Built With OpenAI
+
+Codex was used throughout Build Week to inspect the prior repositories, implement and test the DecisionCase architecture, build the deterministic truth and human-decision lanes, and iterate on the reviewer experience. GPT-5.6 was used for architecture reasoning, implementation review, and the grounded case-writer path demonstrated in the product.
+
+The product does not hardcode that model into runtime source. Judges can supply an available model ID through environment configuration or the reviewer console; the same grounded-output validator and human-decision boundary apply regardless of model size.
 
 ## Model Configuration
 

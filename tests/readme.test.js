@@ -15,6 +15,10 @@ test("README presents product thesis and judge walkthrough", () => {
   assert.match(readme, /decision-story/);
   assert.match(readme, /npm start/);
   assert.match(readme, /npm test/);
+  assert.match(readme, /git clone https:\/\/github\.com\/peuarchukiati-rgb\/klear-decision-room\.git/);
+  assert.match(readme, /Codex was used throughout Build Week/);
+  assert.match(readme, /GPT-5\.6 was used/);
+  assert.match(readme, /does not hardcode that model into runtime source/);
 });
 
 test("README avoids domain pivot branding", () => {
