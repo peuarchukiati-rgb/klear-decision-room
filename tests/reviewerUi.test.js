@@ -9,6 +9,7 @@ test("static reviewer UI exposes Phase 4 operational panels", async () => {
   for (const label of [
     "Live Demo Mode",
     "Payment Review Simulation",
+    "Run Demo",
     "Run Bank-Mismatch Demo",
     "Every day, someone has to approve a payment before it goes out",
     "It's Friday, 4:15 PM. This invoice looks normal",
@@ -48,6 +49,8 @@ test("static reviewer UI exposes Phase 4 operational panels", async () => {
   assert.ok(js.includes("openArtifact"));
   assert.ok(js.includes("Unnamed vendor (see intake)"));
   assert.ok(js.includes("demo-cta-pulse"));
+  assert.ok(js.includes("resetWorkspaceView"));
+  assert.ok(js.includes("loadCases({ selectFirst: false })"));
   assert.ok(js.includes("INTRO_DISMISSED_KEY"));
   assert.ok(js.includes("/case-brief"));
   assert.ok(js.includes("/decisions"));

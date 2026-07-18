@@ -119,8 +119,7 @@ function dismissIntro({ pulse = true } = {}) {
   document.body.classList.remove("intro-open");
   demoRunnerPinned = true;
   el("demo-runner").hidden = false;
-  el("show-demo").hidden = true;
-  el("start-live-demo").classList.toggle("demo-cta-pulse", pulse);
+  el("show-demo").classList.toggle("demo-cta-pulse", pulse);
 }
 
 function artifactCopy(name, content) {
@@ -307,15 +306,14 @@ async function importPackBackFromStory(story) {
   });
 }
 
-async function loadCases() {
+async function loadCases({ selectFirst = true } = {}) {
   const { cases } = await api("/cases");
   const hasCases = cases.length > 0;
   curatedHeroCaseId = cases.find((decisionCase) => {
     const bankRule = decisionCase.rule_results.find((rule) => rule.rule_id === "R-003");
-    return bankRule?.status === "FAIL" && !(decisionCase.human_decision_events || []).length;
+    return bankRule?.status === "FAIL";
   })?.case_id || null;
   el("demo-runner").hidden = hasCases && !demoRunnerPinned;
-  el("show-demo").hidden = !hasCases || demoRunnerPinned;
   el("case-count").textContent = `${cases.length}`;
   el("case-list").innerHTML = cases.map((decisionCase) => `
     <button class="case-card ${decisionCase.case_id === selectedCaseId ? "selected" : ""}" data-case-id="${decisionCase.case_id}">
@@ -328,14 +326,30 @@ async function loadCases() {
   document.querySelectorAll("[data-case-id]").forEach((button) => {
     button.addEventListener("click", () => selectCase(button.dataset.caseId));
   });
-  if (!selectedCaseId && cases[0] && !introActive) {
+  if (selectFirst && !selectedCaseId && cases[0] && !introActive) {
     await selectCase(cases[0].case_id);
   }
+}
+
+async function resetWorkspaceView() {
+  selectedCaseId = null;
+  currentStory = null;
+  demoRunnerPinned = true;
+  el("case-view").hidden = true;
+  el("empty-state").hidden = false;
+  el("demo-runner").hidden = false;
+  el("demo-stage").hidden = true;
+  el("runway-status").textContent = "No intake imported";
+  el("runway-result").textContent = "Click Run Bank-Mismatch Demo to prove the payment stays blocked until evidence arrives.";
+  clearProofSteps();
+  el("show-demo").classList.add("demo-cta-pulse");
+  await loadCases({ selectFirst: false });
 }
 
 async function selectCase(caseId) {
   selectedCaseId = caseId;
   el("start-live-demo").classList.remove("demo-cta-pulse");
+  el("show-demo").classList.remove("demo-cta-pulse");
   const { decision_story } = await api(`/cases/${caseId}/decision-story`);
   currentStory = decision_story;
   renderCase(decision_story);
@@ -566,7 +580,7 @@ el("next-action-button").addEventListener("click", () => {
   switchTab(action || "review");
 });
 
-el("refresh").addEventListener("click", loadCases);
+el("refresh").addEventListener("click", resetWorkspaceView);
 el("intro-next").addEventListener("click", () => {
   el("intro-slide-1").hidden = true;
   el("intro-slide-2").hidden = false;
@@ -576,12 +590,12 @@ el("skip-intro").addEventListener("click", () => dismissIntro());
 el("show-demo").addEventListener("click", () => {
   demoRunnerPinned = true;
   el("demo-runner").hidden = false;
-  el("show-demo").hidden = true;
+  el("show-demo").classList.remove("demo-cta-pulse");
+  el("start-live-demo").click();
 });
 el("hide-demo").addEventListener("click", () => {
   demoRunnerPinned = false;
   el("demo-runner").hidden = Boolean(selectedCaseId);
-  el("show-demo").hidden = !selectedCaseId;
 });
 el("packet-select").addEventListener("change", renderSelectedPacket);
 window.addEventListener("beforeunload", () => {
@@ -590,6 +604,7 @@ window.addEventListener("beforeunload", () => {
 
 el("start-live-demo").addEventListener("click", async () => {
   el("start-live-demo").classList.remove("demo-cta-pulse");
+  el("show-demo").classList.remove("demo-cta-pulse");
   setRunwayBusy(true);
   clearProofSteps();
   const lines = [

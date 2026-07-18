@@ -119,11 +119,11 @@ body.intro-open {
 
 @keyframes demo-cta-pulse {
   0%, 100% {
-    box-shadow: 0 0 0 0 rgba(20, 85, 65, 0);
+    box-shadow: 0 0 0 0 rgba(138, 88, 24, 0);
     transform: translateY(0);
   }
   50% {
-    box-shadow: 0 0 0 7px rgba(20, 85, 65, 0.16);
+    box-shadow: 0 0 0 6px rgba(138, 88, 24, 0.3);
     transform: translateY(-1px);
   }
 }
@@ -257,6 +257,18 @@ h3 {
 .quiet-button {
   border-color: transparent;
   background: transparent;
+}
+
+.topbar-demo-button {
+  border-color: #0d4232;
+  background: var(--green);
+  color: #fff;
+  font-weight: 700;
+}
+
+.topbar-demo-button:hover {
+  border-color: #082f24;
+  background: #0d4232;
 }
 
 .workspace {
