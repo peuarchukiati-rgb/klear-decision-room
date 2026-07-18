@@ -36,7 +36,7 @@ http://127.0.0.1:8787/
 Primary path: use **Live Demo Mode** in the reviewer console.
 
 1. Read the scenario aloud: Friday 4:15 PM, payment cutoff in 45 minutes, AP queue is messy, one invoice looks normal, but the bank account does not match vendor master.
-2. Click **Start Bank-Mismatch Demo**.
+2. Click **Run Bank-Mismatch Demo**.
 3. Let the one-click proof run: intake import, deterministic review, grounded brief, blocked approval, human evidence request, and handoff acknowledgement with evidence still pending.
 4. Scroll into the reviewer console and inspect normalized facts, readiness, rule results, evidence, handoff, and timeline.
 5. Click **Compare Good vs Messy Intake** if you want to show why structured handoff quality matters and why messy input becomes explicit unknowns.
@@ -52,7 +52,7 @@ echo $CASE_ID
 
 ## Walkthrough
 
-1. Open the Case Inbox and select the imported or seeded case.
+1. Open the Decision Cases workspace and select the imported or seeded Living Decision Folder.
 2. Run deterministic review if you are using the API path:
 
 ```bash
@@ -67,7 +67,7 @@ curl -X POST http://127.0.0.1:8787/cases/$CASE_ID/case-brief
 
 4. Refresh the reviewer console.
 5. Inspect normalized facts, readiness, rule results, unknowns, traceability, and Decision Timeline.
-6. Optional live model beat: paste an OpenAI API key and the smallest model ID you can use into **Grounded Case Brief**, then click **Generate Brief**. The badge should flip from `FALLBACK (no key)` to `LIVE MODEL`.
+6. Optional live model beat: open the `case-brief.md` artifact, expand **Generate with a configured model**, paste an OpenAI API key and the smallest model ID you can use, then click **Generate Brief**. The badge should flip from `FALLBACK (no key)` to `LIVE MODEL`.
 7. Submit `REQUEST_EVIDENCE` with reviewer identity, reason, and required evidence.
 8. Open the Handoff view and inspect Markdown plus JSON. Point out:
    - `handoff_id`

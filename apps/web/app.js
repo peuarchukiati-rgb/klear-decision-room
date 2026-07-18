@@ -5,6 +5,8 @@ let liveModelCredentials = {
   api_key: "",
   model_id: ""
 };
+let currentBriefMarkdown = "";
+let currentHandoffMarkdown = "";
 
 async function api(path, options = {}) {
   const response = await fetch(path, {
@@ -28,6 +30,32 @@ function moneyFromCase(decisionCase) {
   return invoice?.payload?.total ? `${invoice.payload.total}` : "Unknown";
 }
 
+function factFromCase(decisionCase, field) {
+  return decisionCase.facts.find((item) => item.field === field)?.value;
+}
+
+function formatMoney(decisionCase) {
+  const amount = Number(moneyFromCase(decisionCase));
+  const currency = factFromCase(decisionCase, "currency") || "USD";
+  if (!Number.isFinite(amount)) return "Amount unknown";
+  try {
+    return new Intl.NumberFormat("en-US", { style: "currency", currency }).format(amount);
+  } catch {
+    return `${currency} ${amount.toLocaleString("en-US")}`;
+  }
+}
+
+function formatStatus(status = "") {
+  return status.toLowerCase().split("_").map((word) => word.charAt(0).toUpperCase() + word.slice(1)).join(" ");
+}
+
+function formatTime(timestamp) {
+  if (!timestamp) return "Unknown time";
+  const date = new Date(timestamp);
+  if (Number.isNaN(date.getTime())) return timestamp;
+  return date.toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
+}
+
 function vendorFromCase(decisionCase) {
   const fact = decisionCase.facts.find((item) => item.field === "vendor_name");
   if (fact) return fact.value;
@@ -46,6 +74,15 @@ function el(id) {
   return document.getElementById(id);
 }
 
+function escapeHtml(value = "") {
+  return String(value)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
 function pill(text, ready) {
   return `<span class="pill ${ready ? "ready" : "blocked"}">${text}</span>`;
 }
@@ -59,6 +96,40 @@ function switchTab(tabName) {
   document.querySelectorAll(".tab-panel").forEach((panel) => panel.hidden = panel.id !== `tab-${tabName}`);
 }
 
+function revealDemoStage() {
+  el("demo-stage").hidden = false;
+}
+
+function artifactCopy(name, content) {
+  return navigator.clipboard.writeText(content).then(() => {
+    el("artifact-subtitle").textContent = `${name} copied to clipboard.`;
+  });
+}
+
+function downloadText(filename, content, type = "text/markdown") {
+  const url = URL.createObjectURL(new Blob([content], { type }));
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = filename;
+  anchor.click();
+  URL.revokeObjectURL(url);
+}
+
+function openArtifact(type) {
+  if (!selectedCaseId || !currentStory) return;
+  const labels = {
+    brief: ["Case writing artifact", "Grounded Case Brief", "Prepared from persisted facts, evidence, and rule results."],
+    handoff: ["State transfer artifact", "Decision Handoff", "Portable context for the next owner, agent, or system."],
+    packback: ["Return artifact", "Pack Back", "Bring completed work back into the versioned DecisionCase."]
+  };
+  document.querySelectorAll(".artifact-view").forEach((view) => view.hidden = view.id !== `artifact-${type}`);
+  el("artifact-kicker").textContent = labels[type][0];
+  el("artifact-title").textContent = labels[type][1];
+  el("artifact-subtitle").textContent = labels[type][2];
+  const dialog = el("artifact-dialog");
+  if (!dialog.open) dialog.showModal();
+}
+
 function selectedPacket() {
   const packetId = el("packet-select").value;
   return demoIntakePackets.find((item) => item.packet_id === packetId);
@@ -70,6 +141,9 @@ async function loadDemoIntakePackets() {
   el("packet-select").innerHTML = packets.map((item) => `
     <option value="${item.packet_id}">${item.kind.toUpperCase()} · ${item.scenario_id}</option>
   `).join("");
+  if (packets.some((item) => item.packet_id === "DEMO-HANDOFF-SCN-BANK-MISMATCH")) {
+    el("packet-select").value = "DEMO-HANDOFF-SCN-BANK-MISMATCH";
+  }
   renderSelectedPacket();
 }
 
@@ -87,6 +161,7 @@ function findDemoPacket(packetId) {
 }
 
 function writeRunway(lines) {
+  revealDemoStage();
   el("runway-result").textContent = Array.isArray(lines) ? lines.join("\n") : lines;
 }
 
@@ -211,13 +286,13 @@ async function importPackBackFromStory(story) {
 
 async function loadCases() {
   const { cases } = await api("/cases");
-  el("case-count").textContent = `${cases.length} cases`;
+  el("case-count").textContent = `${cases.length}`;
   el("case-list").innerHTML = cases.map((decisionCase) => `
-    <button class="case-card" data-case-id="${decisionCase.case_id}">
+    <button class="case-card ${decisionCase.case_id === selectedCaseId ? "selected" : ""}" data-case-id="${decisionCase.case_id}">
       <strong>${decisionCase.case_id}</strong>
-      <span>${vendorFromCase(decisionCase)} · ${moneyFromCase(decisionCase)}</span>
-      <span class="meta">${decisionCase.status} · ${severityFromCase(decisionCase)} · ${decisionCase.current_owner?.name || decisionCase.current_owner?.role || "Unassigned"}</span>
-      <span class="meta">Updated ${decisionCase.updated_at}</span>
+      <span class="case-vendor">${vendorFromCase(decisionCase)}</span>
+      <span class="case-amount">${formatMoney(decisionCase)}</span>
+      <span class="case-card-meta"><span>${formatStatus(decisionCase.status)}</span><span>${severityFromCase(decisionCase)}</span></span>
     </button>
   `).join("");
   document.querySelectorAll("[data-case-id]").forEach((button) => {
@@ -233,6 +308,9 @@ async function selectCase(caseId) {
   const { decision_story } = await api(`/cases/${caseId}/decision-story`);
   currentStory = decision_story;
   renderCase(decision_story);
+  document.querySelectorAll("[data-case-id]").forEach((button) => {
+    button.classList.toggle("selected", button.dataset.caseId === caseId);
+  });
 }
 
 function renderCase(story) {
@@ -240,9 +318,14 @@ function renderCase(story) {
   updateRunway(story);
   el("empty-state").hidden = true;
   el("case-view").hidden = false;
-  el("case-title").textContent = decisionCase.case_id;
-  el("case-subtitle").textContent = `${vendorFromCase(decisionCase)} · ${moneyFromCase(decisionCase)} · Owner: ${decisionCase.current_owner?.name || decisionCase.current_owner?.role || "Unassigned"}`;
-  el("case-status").textContent = decisionCase.status;
+  const invoiceNumber = factFromCase(decisionCase, "invoice_number") || "Invoice pending";
+  const owner = decisionCase.current_owner?.name || decisionCase.current_owner?.role || "Unassigned";
+  const timelineEvents = story.timeline?.events || [];
+  const latestTimestamp = decisionCase.updated_at || timelineEvents[timelineEvents.length - 1]?.timestamp;
+  el("case-folder-id").textContent = decisionCase.case_id;
+  el("case-title").textContent = vendorFromCase(decisionCase);
+  el("case-subtitle").textContent = `${invoiceNumber} · ${formatMoney(decisionCase)} · Owner: ${owner} · Updated ${formatTime(latestTimestamp)}`;
+  el("case-status").textContent = formatStatus(decisionCase.status);
   el("case-readiness").textContent = story.readiness.ready_for_decision ? "Ready for decision" : "Evidence required";
   el("case-readiness").className = `pill ${story.readiness.ready_for_decision ? "ready" : "blocked"}`;
 
@@ -254,24 +337,109 @@ function renderCase(story) {
     ${pill(`${story.readiness.blocking_rule_count} blockers`, story.readiness.blocking_rule_count === 0)}
     ${renderRows(story.readiness.readiness_reasons, (reason) => reason)}
   `;
-  const brief = decisionCase.human_decision?.decision
-    ? `Latest human decision: ${decisionCase.human_decision.decision}\n${decisionCase.human_decision.reason || ""}`
-    : "No human decision recorded yet.";
   const aiBrief = decisionCase.ai_case_brief || {};
   renderCaseWriterBadge(aiBrief);
-  el("case-brief").textContent = [
+  const briefText = [
     aiBrief.summary ? `Summary: ${aiBrief.summary}` : "No grounded case brief prepared yet.",
     aiBrief.risk_explanation ? `Risk: ${aiBrief.risk_explanation}` : "",
     aiBrief.recommended_disposition ? `Recommended disposition: ${aiBrief.recommended_disposition}` : "",
-    aiBrief.missing_information_request ? `Missing information request: ${aiBrief.missing_information_request}` : "",
-    brief
+    aiBrief.missing_information_request ? `Missing information request: ${aiBrief.missing_information_request}` : ""
   ].filter(Boolean).join("\n\n");
+  el("case-brief").textContent = briefText;
+  renderBriefArtifact(decisionCase, aiBrief);
+  renderPrimaryFinding(decisionCase);
+  renderNextAction(story, decisionCase);
+  renderDecisionSnapshot(decisionCase);
   el("rules").innerHTML = renderRows(decisionCase.rule_results, (rule) => `<strong>${rule.rule_id} ${rule.status}</strong><br>${rule.summary}<br><span class="meta">Evidence: ${(rule.evidence_ids || []).join(", ") || "None"}</span>`);
   el("unknowns").innerHTML = renderRows(decisionCase.unknowns, (item) => `${item.summary || item.field}<br><span class="meta">${item.evidence_unavailable_reason || ""}</span>`);
   renderTraceability(story.traceability);
   renderTimeline(story.timeline);
   renderHandoff(story.latest_handoff);
   seedPackBack(story);
+}
+
+function renderPrimaryFinding(decisionCase) {
+  const result = decisionCase.rule_results.find((rule) => rule.status === "FAIL")
+    || decisionCase.rule_results.find((rule) => rule.status === "UNKNOWN")
+    || decisionCase.rule_results.find((rule) => rule.status === "WARNING");
+  const status = el("primary-finding-status");
+  if (result) {
+    el("primary-finding").textContent = result.rule_name || result.rule_id;
+    el("primary-finding-detail").textContent = result.summary;
+    status.textContent = result.status;
+    status.className = "finding-status";
+    return;
+  }
+  if (decisionCase.rule_results.length) {
+    el("primary-finding").textContent = "No blocking finding";
+    el("primary-finding-detail").textContent = "Deterministic checks found no unresolved hard-gate rule in the current case version.";
+    status.textContent = "Clear";
+    status.className = "finding-status pass";
+    return;
+  }
+  el("primary-finding").textContent = "Truth review not run";
+  el("primary-finding-detail").textContent = "Normalize the intake and run deterministic checks before asking a human to decide.";
+  status.textContent = "Pending";
+  status.className = "finding-status";
+}
+
+function nextActionFor(story, decisionCase) {
+  const latest = decisionCase.latest_decision_event;
+  const requiredEvidence = latest?.required_evidence?.[0] || decisionCase.human_decision?.required_evidence?.[0];
+  if (["APPROVED", "REJECTED", "CLOSED"].includes(decisionCase.status)) {
+    return { title: "Review the completed decision record", detail: "This case is terminal. Its authority and lineage remain available in immutable history.", label: "Open history", action: "timeline" };
+  }
+  if (latest?.action === "REQUEST_EVIDENCE") {
+    return { title: "Collect the requested evidence", detail: requiredEvidence || "The payment remains blocked until the requested evidence returns.", label: "Open handoff", action: "handoff" };
+  }
+  if (latest?.action === "ESCALATE") {
+    return { title: "Follow the escalation", detail: `The case is waiting on ${latest.escalation_target?.name || "the next owner"}.`, label: "Open handoff", action: "handoff" };
+  }
+  if (!decisionCase.rule_results.length) {
+    return { title: "Verify the intake", detail: "Run deterministic review to establish facts, evidence, and unknowns before a decision.", label: "Run truth review", action: "review" };
+  }
+  if (!story.readiness.ready_for_decision) {
+    return { title: "Resolve the blocking finding", detail: story.readiness.readiness_reasons[0] || "Inspect the evidence behind the current blocker.", label: "Inspect evidence", action: "evidence" };
+  }
+  return { title: "Make the human decision", detail: "The case is decision-ready. Review the prepared context, then record an explicit human action.", label: "Decide", action: "decision" };
+}
+
+function renderNextAction(story, decisionCase) {
+  const next = nextActionFor(story, decisionCase);
+  el("next-action-title").textContent = next.title;
+  el("next-action-detail").textContent = next.detail;
+  el("next-action-button").textContent = next.label;
+  el("next-action-button").dataset.action = next.action;
+}
+
+function renderDecisionSnapshot(decisionCase) {
+  const event = decisionCase.latest_decision_event;
+  if (!event) {
+    el("decision-snapshot").innerHTML = "<span class=\"meta\">No human decision has been recorded.</span>";
+    return;
+  }
+  el("decision-snapshot").innerHTML = `
+    <strong>${formatStatus(event.action)}</strong><br>
+    ${event.reason}<br>
+    <span class="meta">${event.reviewer?.name || event.reviewer?.role || "Unknown reviewer"} · ${formatTime(event.decided_at)}</span>
+  `;
+}
+
+function renderBriefArtifact(decisionCase, aiBrief) {
+  const mode = aiBrief.writer_mode === "model" ? `Live model · ${aiBrief.model_id || "configured model"}` : aiBrief.writer_mode === "fallback" ? "Deterministic fallback" : "Not prepared";
+  const citations = (aiBrief.citations || []).map((citation) => `- ${citation.claim}\n  - Evidence: ${(citation.evidence_ids || []).join(", ") || "None"}\n  - Rules: ${(citation.rule_ids || []).join(", ") || "None"}`).join("\n");
+  currentBriefMarkdown = `---\nprotocol: klear-case-brief/v1\ncase_id: ${decisionCase.case_id}\nsource_version: ${decisionCase.version}\nwriter_mode: ${aiBrief.writer_mode || "none"}\n---\n\n# Grounded Case Brief\n\n## Summary\n${aiBrief.summary || "No brief prepared."}\n\n## Risk\n${aiBrief.risk_explanation || "Not established."}\n\n## Recommended Disposition\n${aiBrief.recommended_disposition || "No recommendation."}\n\n## Missing Information\n${aiBrief.missing_information_request || "None recorded."}\n\n## Citations\n${citations || "- None recorded."}\n`;
+  el("brief-filename").textContent = `${decisionCase.case_id}-case-brief.md`;
+  el("brief-file-meta").textContent = mode;
+  el("brief-artifact-state").textContent = mode;
+  el("brief-artifact-state").className = `pill ${aiBrief.writer_mode ? "ready" : ""}`;
+  el("case-brief-document").innerHTML = `
+    <h3>Summary</h3><p>${escapeHtml(aiBrief.summary || "No grounded case brief has been prepared yet.")}</p>
+    <h3>Risk</h3><p>${escapeHtml(aiBrief.risk_explanation || "Not established.")}</p>
+    <h3>Recommended disposition</h3><p>${escapeHtml(aiBrief.recommended_disposition || "No recommendation.")}</p>
+    <h3>Missing information</h3><p>${escapeHtml(aiBrief.missing_information_request || "None recorded.")}</p>
+    <h3>Citations</h3>${renderRows(aiBrief.citations || [], (citation) => `${escapeHtml(citation.claim)}<br><span class="meta">Evidence: ${escapeHtml((citation.evidence_ids || []).join(", ") || "None")} · Rules: ${escapeHtml((citation.rule_ids || []).join(", ") || "None")}</span>`)}
+  `;
 }
 
 function renderCaseWriterBadge(aiBrief = {}) {
@@ -302,19 +470,38 @@ function renderTimeline(timeline) {
   el("timeline").innerHTML = timeline.events.map((event) => `
     <li>
       <strong>${event.label}</strong><br>
-      <span class="meta">${event.timestamp} · ${event.actor?.name || event.actor?.role || "Unknown"}</span><br>
+      <span class="meta">${formatTime(event.timestamp)} · ${event.actor?.name || event.actor?.role || "Unknown"}</span><br>
       ${event.note || ""}
     </li>
   `).join("");
 }
 
 function renderHandoff(handoff) {
-  el("handoff-markdown").textContent = handoff.human_readable;
-  el("handoff-json").textContent = JSON.stringify(handoff.machine_readable, null, 2);
+  const machine = handoff.machine_readable;
+  const nextOwner = machine.next_owner?.name || machine.next_owner?.role || "Unassigned";
+  const decision = machine.latest_decision_event?.action || machine.human_decision?.decision || "No human decision";
+  const requiredAction = machine.required_actions?.[0] || machine.unresolved_items?.[0] || "Review the current case state.";
+  currentHandoffMarkdown = `---\nprotocol: klear-handoff/v1\nhandoff_id: ${machine.handoff_id}\ncase_id: ${machine.case_id}\nsource_version: ${machine.generated_from_case_version}\ndecision_event: ${machine.generated_from_decision_event || "none"}\nnext_owner: ${nextOwner}\n---\n\n${handoff.human_readable}`;
+  el("handoff-filename").textContent = `${machine.case_id}-decision-handoff.md`;
+  el("handoff-file-meta").textContent = `${formatStatus(decision)} · v${machine.generated_from_case_version}`;
+  el("handoff-lineage").textContent = `${machine.handoff_id} · Case v${machine.generated_from_case_version} · ${machine.generated_from_decision_event || "No decision event"}`;
+  el("handoff-overview").innerHTML = `
+    <span class="eyebrow">Decision handoff</span>
+    <h3>${machine.case_id} · ${formatStatus(machine.status)}</h3>
+    <div class="document-field"><span>Latest human action</span><strong>${formatStatus(decision)}</strong></div>
+    <div class="document-field"><span>Next owner</span><strong>${nextOwner}</strong></div>
+    <div class="document-field"><span>Required next action</span><strong>${requiredAction}</strong></div>
+    <div class="document-field"><span>Evidence references</span><strong>${machine.evidence_ids?.length || 0}</strong></div>
+    <div class="document-field"><span>Rule references</span><strong>${machine.rule_ids?.length || 0}</strong></div>
+  `;
+  el("handoff-markdown").textContent = currentHandoffMarkdown;
+  el("handoff-json").textContent = JSON.stringify(machine, null, 2);
 }
 
 function seedPackBack(story) {
   const machine = story.latest_handoff.machine_readable;
+  const count = machine.pack_back_events?.length || 0;
+  el("packback-file-meta").textContent = count ? `${count} return update${count === 1 ? "" : "s"} recorded` : "Return an update to this case";
   el("packback-form").payload.value = JSON.stringify({
     case_id: story.case_id,
     source_case_version: story.version,
@@ -332,6 +519,20 @@ function seedPackBack(story) {
 
 document.querySelectorAll(".tabs button").forEach((button) => {
   button.addEventListener("click", () => switchTab(button.dataset.tab));
+});
+
+document.querySelectorAll("[data-artifact]").forEach((button) => {
+  button.addEventListener("click", () => openArtifact(button.dataset.artifact));
+});
+
+el("inspect-finding").addEventListener("click", () => switchTab("evidence"));
+el("open-full-brief").addEventListener("click", () => openArtifact("brief"));
+el("close-artifact").addEventListener("click", () => el("artifact-dialog").close());
+el("next-action-button").addEventListener("click", () => {
+  const action = el("next-action-button").dataset.action;
+  if (action === "handoff") return openArtifact("handoff");
+  if (action === "review") return el("run-review").click();
+  switchTab(action || "review");
 });
 
 el("refresh").addEventListener("click", loadCases);
@@ -395,7 +596,7 @@ el("start-live-demo").addEventListener("click", async () => {
     await selectCase(decisionCase.case_id);
     await loadCases();
     switchTab("timeline");
-    document.querySelector(".layout").scrollIntoView({ behavior: "smooth", block: "start" });
+    document.querySelector(".app-shell").scrollIntoView({ behavior: "smooth", block: "start" });
   } catch (error) {
     lines.push(`Demo stopped: ${error.message}`);
     writeRunway(lines);
@@ -427,7 +628,7 @@ el("compare-intakes").addEventListener("click", async () => {
     await selectCase(messy.case_id);
     await loadCases();
     switchTab("review");
-    document.querySelector(".layout").scrollIntoView({ behavior: "smooth", block: "start" });
+    document.querySelector(".app-shell").scrollIntoView({ behavior: "smooth", block: "start" });
   } catch (error) {
     lines.push(`Comparison stopped: ${error.message}`);
     writeRunway(lines);
@@ -437,7 +638,7 @@ el("compare-intakes").addEventListener("click", async () => {
 });
 
 el("open-console").addEventListener("click", () => {
-  document.querySelector(".layout").scrollIntoView({ behavior: "smooth", block: "start" });
+  document.querySelector(".app-shell").scrollIntoView({ behavior: "smooth", block: "start" });
 });
 
 el("import-packet").addEventListener("click", async () => {
@@ -473,7 +674,7 @@ el("run-brief").addEventListener("click", async () => {
       : "Fallback brief prepared without model credentials.");
     await selectCase(selectedCaseId);
     await loadCases();
-    switchTab("review");
+    openArtifact("brief");
   } catch (error) {
     writeRunway(error.message);
   }
@@ -497,7 +698,7 @@ el("request-evidence").addEventListener("click", async () => {
     writeRunway(`Human decision event recorded: ${result.decision_event.decision_event_id}.`);
     await selectCase(selectedCaseId);
     await loadCases();
-    switchTab("handoff");
+    openArtifact("handoff");
   } catch (error) {
     writeRunway(error.message);
   }
@@ -505,7 +706,7 @@ el("request-evidence").addEventListener("click", async () => {
 
 el("open-handoff").addEventListener("click", () => {
   if (!selectedCaseId) return;
-  switchTab("handoff");
+  openArtifact("handoff");
 });
 
 el("import-demo-packback").addEventListener("click", async () => {
@@ -556,9 +757,10 @@ el("case-brief-form").addEventListener("submit", async (event) => {
   }
 });
 
-el("copy-handoff").addEventListener("click", async () => {
-  await navigator.clipboard.writeText(el("handoff-markdown").textContent);
-});
+el("copy-brief").addEventListener("click", () => artifactCopy("Case brief", currentBriefMarkdown));
+el("download-brief").addEventListener("click", () => downloadText(`${selectedCaseId}-case-brief.md`, currentBriefMarkdown));
+el("copy-handoff").addEventListener("click", () => artifactCopy("Decision handoff", currentHandoffMarkdown));
+el("download-handoff").addEventListener("click", () => downloadText(`${selectedCaseId}-decision-handoff.md`, currentHandoffMarkdown));
 
 el("decision-form").addEventListener("submit", async (event) => {
   event.preventDefault();

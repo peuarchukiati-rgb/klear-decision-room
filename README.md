@@ -6,6 +6,8 @@ KLEAR Decision Room turns messy operational evidence into a persistent, auditabl
 
 AI prepares the case. Systems verify the facts. Humans own the decision.
 
+The reviewer experiences each `DecisionCase` as a **Living Decision Folder**: one familiar workspace showing the current state, the primary finding, and the next human action. The truth engine, grounded writer, handoff lineage, and immutable history stay linked underneath without being flattened onto one screen.
+
 ## The Problem
 
 Most enterprise AI workflows stop at an answer. Real operational decisions need more than an answer: they need facts, evidence, rule outcomes, unknowns, recommendations, human accountability, and a record of what changed over time.
@@ -45,6 +47,8 @@ Versioned DecisionCase
 - **Decision Handoff:** the latest persisted case becomes a two-plane human-readable and machine-readable handoff.
 - **Pack Back:** the next owner returns structured updates that merge into the case through a guarded version bump.
 
+The UI presents case briefs, decision handoffs, and pack backs as portable artifacts. A reviewer can open, copy, or download a focused Markdown handoff while raw Markdown and the machine-readable sidecar remain available as advanced detail.
+
 ## Architecture
 
 The durable object is a `DecisionCase`:
@@ -76,9 +80,9 @@ Phase 4 exposes derived judge-facing intelligence without changing that source-o
 
 ## Walkthrough
 
-1. Open the reviewer console and click **Start Bank-Mismatch Demo**.
+1. Open the reviewer console and click **Run Bank-Mismatch Demo**.
 2. Watch KLEAR import intake, run deterministic truth review, prepare a grounded brief, block unsafe approval, record a human evidence request, and receive handoff acknowledgement while evidence remains pending.
-3. Inspect the selected case's normalized facts, readiness, traceability, timeline, handoff, and versions.
+3. Read the Living Decision Folder's primary finding and next action, then open its evidence, portable handoff artifact, and immutable history.
 4. Use **Compare Good vs Messy Intake** to see clean structured input become decision-ready while messy input preserves unknowns instead of guessing.
 
 Example:
@@ -111,7 +115,7 @@ curl http://127.0.0.1:8787/cases/$CASE_ID/timeline
 curl http://127.0.0.1:8787/cases/$CASE_ID/decision-story
 ```
 
-The reviewer console provides the fastest judge path: click **Start Bank-Mismatch Demo** for a one-click operational proof. Manual scenario controls remain available for choosing a specific intake packet and stepping through the same lifecycle.
+The reviewer console provides the fastest judge path: click **Run Bank-Mismatch Demo** for a one-click operational proof. Manual scenario controls remain available under the demo stage for choosing a specific intake packet and stepping through the same lifecycle.
 
 ## API
 
@@ -156,7 +160,7 @@ The reviewer console also supports a bring-your-own-key live model run for judge
 
 1. Open `http://127.0.0.1:8787/`.
 2. Select a reviewed case.
-3. In **Grounded Case Brief**, paste an OpenAI API key and a `Model ID`.
+3. Open the `case-brief.md` artifact, expand **Generate with a configured model**, and paste an OpenAI API key and a `Model ID`.
 4. Use the smallest suitable model to prove the architecture, not model size, carries the trust boundary.
 5. Click **Generate Brief** and watch the badge change from `FALLBACK (no key)` to `LIVE MODEL`.
 

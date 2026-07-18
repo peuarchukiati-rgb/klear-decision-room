@@ -75,6 +75,25 @@ Include stable structured fields such as:
 
 The prose layer must never introduce a fact absent from the machine-readable layer or source state.
 
+## Transport Invariant
+
+A handoff must remain understandable when it moves as a downloaded `.md` file, an opened document, or plain text pasted into a fresh agent session. Filename and session history are helpful context, but they are not part of the protocol contract.
+
+Put the protocol identity and lineage inside the document body so those transport modes remain semantically equivalent:
+
+```md
+---
+protocol: klear-handoff/v1
+handoff_id: HANDOFF-CASE-0042-V7
+case_id: CASE-0042
+source_version: 7
+decision_event: HDEC-0012
+next_owner: Accounts Payable
+---
+```
+
+The UI may show this as a familiar file with open, copy, and download actions. Raw Markdown and the machine-readable plane can remain collapsed until a human or agent needs them.
+
 ## Required Sections
 
 Use this minimum structure for Markdown handoffs:

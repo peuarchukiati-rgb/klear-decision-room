@@ -9,21 +9,22 @@ test("static reviewer UI exposes Phase 4 operational panels", async () => {
   for (const label of [
     "Live Demo Mode",
     "Payment Review Simulation",
-    "Start Bank-Mismatch Demo",
+    "Run Bank-Mismatch Demo",
     "Compare Good vs Messy Intake",
-    "Reviewer Objective",
-    "Proof Target",
+    "Decision cases",
+    "Your next action",
+    "What KLEAR found",
+    "Portable artifacts",
     "Handoff acknowledged, evidence pending",
     "Demo intake packet",
     "Import Intake",
     "Run Truth Review",
     "Try Blocked Approve",
-    "Case Inbox",
     "Normalized Facts",
     "Evidence",
     "Decision Timeline",
-    "Human Decision",
-    "Decision Handoff",
+    "Record an explicit decision",
+    "decision-handoff.md",
     "Pack Back",
     "API Key",
     "Model ID"
@@ -38,6 +39,9 @@ test("static reviewer UI exposes Phase 4 operational panels", async () => {
   assert.ok(js.includes("DEMO-MESSY-SCN-MISSING-VENDOR"));
   assert.ok(js.includes("Unsafe approval blocked"));
   assert.ok(js.includes("payment remains blocked"));
+  assert.ok(js.includes("klear-case-brief/v1"));
+  assert.ok(js.includes("klear-handoff/v1"));
+  assert.ok(js.includes("openArtifact"));
   assert.ok(js.includes("/case-brief"));
   assert.ok(js.includes("/decisions"));
   assert.ok(js.includes("/pack-back"));

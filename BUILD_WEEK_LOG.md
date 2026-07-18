@@ -26,3 +26,5 @@
 - Added Phase 4.1 intake runway: structured handoff and messy intake packet import, demo packet API, reviewer-console lifecycle controls, and docs for intake-driven demos.
 - Added guided payment review simulation mode so the first screen presents the finance cutoff scenario, one-click bank-mismatch proof path, and good-vs-messy intake comparison.
 - Tightened guided demo ending so Pack Back is framed as handoff acknowledgement with evidence pending, preserving the thesis that the payment remains blocked until human-confirmed evidence arrives.
+- Reframed the reviewer console as a Living Decision Folder: current state, primary finding, and next human action stay visible while evidence and immutable history remain focused folder sections.
+- Moved grounded briefs, decision handoffs, and pack backs into portable artifact views with copy/download affordances, protocol metadata, and collapsed raw Markdown/machine-readable detail.

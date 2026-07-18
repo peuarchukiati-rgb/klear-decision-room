@@ -8,38 +8,45 @@
   </head>
   <body>
     <header class="topbar">
-      <div>
-        <h1>KLEAR Decision Room</h1>
-        <p>Where AI prepares decisions without owning them.</p>
+      <div class="brand-lockup">
+        <span class="brand-mark">K</span>
+        <div>
+          <h1>KLEAR</h1>
+          <p>Decision Room</p>
+        </div>
       </div>
-      <button id="refresh">Refresh</button>
+      <div class="topbar-context">
+        <span>Where AI prepares decisions without owning them.</span>
+        <button id="refresh" class="quiet-button" title="Refresh cases">Refresh</button>
+      </div>
     </header>
 
-    <main>
-      <section class="runway">
+    <main class="workspace">
+      <section class="demo-runner" aria-label="Guided demo">
+        <div class="demo-prompt">
+          <span class="eyebrow">Guided scenario</span>
+          <strong>One payment. One mismatched bank account. One human decision.</strong>
+          <span class="meta">See how KLEAR keeps the payment blocked while the evidence catches up.</span>
+        </div>
+        <div class="button-row demo-actions">
+          <button id="start-live-demo" class="primary-action">Run Bank-Mismatch Demo</button>
+          <details class="demo-menu">
+            <summary>More scenarios</summary>
+            <div class="demo-menu-body">
+              <button id="compare-intakes">Compare Good vs Messy Intake</button>
+              <button id="open-console">Open case workspace</button>
+            </div>
+          </details>
+        </div>
+      </section>
+
+      <section id="demo-stage" class="demo-stage" hidden>
         <div class="section-head">
           <div>
             <span class="eyebrow">Live Demo Mode</span>
             <h2>Payment Review Simulation</h2>
-            <p class="scenario-copy">Imagine it is Friday, 4:15 PM. Payment cutoff is in 45 minutes, the AP queue is full of invoices, emails, PDFs, and vendor records, and one payment is about to leave the business.</p>
-            <p class="meta">The invoice looks normal: vendor exists, PO exists, amount is in range. One detail is wrong: the submitted bank account does not match the approved vendor master.</p>
           </div>
           <span id="runway-status" class="pill">No intake imported</span>
-        </div>
-        <div class="demo-brief">
-          <article>
-            <h3>Reviewer Objective</h3>
-            <p>Decide whether this payment can proceed without letting AI own the decision.</p>
-          </article>
-          <article>
-            <h3>Proof Target</h3>
-            <p>Verify facts without a model, let AI prepare the brief, block unsafe approval, then create a human handoff.</p>
-          </article>
-        </div>
-        <div class="button-row primary-actions">
-          <button id="start-live-demo" class="primary-action">Start Bank-Mismatch Demo</button>
-          <button id="compare-intakes">Compare Good vs Messy Intake</button>
-          <button id="open-console">Open Reviewer Console</button>
         </div>
         <div class="runway-steps" id="runway-steps">
           <span class="step">Intake received</span>
@@ -49,7 +56,7 @@
           <span class="step">Human decision recorded</span>
           <span class="step">Handoff acknowledged, evidence pending</span>
         </div>
-        <pre id="runway-result">Click Start Bank-Mismatch Demo to prove the payment stays blocked until evidence arrives.</pre>
+        <pre id="runway-result">Click Run Bank-Mismatch Demo to prove the payment stays blocked until evidence arrives.</pre>
 
         <details class="manual-demo">
           <summary>Manual scenario controls</summary>
@@ -71,164 +78,299 @@
         </details>
       </section>
 
-      <div class="layout">
-        <section class="inbox">
-          <div class="section-head">
-            <h2>Case Inbox</h2>
-            <span id="case-count">0 cases</span>
-          </div>
-          <div id="case-list" class="case-list"></div>
-        </section>
-
-        <section class="review">
-          <div id="empty-state" class="empty-state">Import or select a case to review.</div>
-          <div id="case-view" hidden>
-          <div class="case-title">
+      <div class="app-shell">
+        <aside class="inbox">
+          <div class="inbox-title">
             <div>
-              <h2 id="case-title"></h2>
-              <p id="case-subtitle"></p>
+              <span class="eyebrow">Workspace</span>
+              <h2>Decision cases</h2>
             </div>
-            <div class="status-stack">
-              <span id="case-status" class="pill"></span>
-              <span id="case-readiness" class="pill"></span>
-            </div>
+            <span id="case-count" class="count-badge">0</span>
+          </div>
+          <p class="inbox-copy">Open work requiring a verified human decision.</p>
+          <div id="case-list" class="case-list"></div>
+        </aside>
+
+        <section class="folder-workspace">
+          <div id="empty-state" class="empty-state">
+            <span class="empty-icon">K</span>
+            <h2>No case selected</h2>
+            <p>Choose a case from the workspace or run the guided scenario.</p>
           </div>
 
-          <div class="tabs">
-            <button data-tab="review" class="active">Review</button>
-            <button data-tab="evidence">Evidence</button>
-            <button data-tab="timeline">Timeline</button>
-            <button data-tab="decision">Decision</button>
-            <button data-tab="handoff">Handoff</button>
-            <button data-tab="packback">Pack Back</button>
-          </div>
-
-          <section id="tab-review" class="tab-panel">
-            <div class="lane-banner">
-              <div class="lane ai-lane">
-                <strong>AI Prepared</strong>
-                <span>Grounded brief only. No decision authority.</span>
+          <div id="case-view" class="decision-folder" hidden>
+            <header class="folder-cover">
+              <div class="breadcrumbs">
+                <span>Decision cases</span>
+                <span>/</span>
+                <span id="case-folder-id"></span>
               </div>
-              <div class="lane human-lane">
-                <strong>Human Decision</strong>
-                <span>Authoritative only through explicit reviewer action.</span>
-              </div>
-            </div>
-            <div class="grid two">
-              <article>
-                <h3>Normalized Facts</h3>
-                <dl id="facts"></dl>
-              </article>
-              <article>
-                <h3>Readiness</h3>
-                <div id="readiness"></div>
-              </article>
-            </div>
-            <article>
-              <div class="section-head">
-                <h3>Grounded Case Brief</h3>
-                <span id="case-writer-badge" class="pill">FALLBACK (no key)</span>
-              </div>
-              <form id="case-brief-form" class="form compact-form">
-                <label>API Key
-                  <input name="api_key" type="password" autocomplete="off" placeholder="Optional local-only key">
-                </label>
-                <label>Model ID
-                  <input name="model_id" placeholder="Use your smallest model to prove the guardrails hold">
-                </label>
-                <div class="button-row">
-                  <button type="submit">Generate Brief</button>
-                  <button type="button" id="clear-model-key">Clear Key</button>
+              <div class="case-title">
+                <div>
+                  <span id="case-context" class="eyebrow">Finance payment review</span>
+                  <h2 id="case-title"></h2>
+                  <p id="case-subtitle"></p>
                 </div>
-              </form>
-              <p class="meta">Key is sent only to the local API for this request and is never stored in the case.</p>
-              <div id="case-brief" class="brief"></div>
-              <pre id="case-brief-result"></pre>
-            </article>
-            <article>
-              <h3>Rule Results</h3>
-              <div id="rules"></div>
-            </article>
-            <article>
-              <h3>Unknowns</h3>
-              <div id="unknowns"></div>
-            </article>
-          </section>
+                <div class="status-stack">
+                  <span id="case-status" class="pill"></span>
+                  <span id="case-readiness" class="pill"></span>
+                </div>
+              </div>
 
-          <section id="tab-evidence" class="tab-panel" hidden>
-            <div class="grid two">
-              <article>
-                <h3>Rules</h3>
-                <div id="trace-rules"></div>
-              </article>
-              <article>
-                <h3>Evidence</h3>
-                <div id="trace-evidence"></div>
-              </article>
+              <section class="next-action">
+                <div class="next-action-marker">Next</div>
+                <div>
+                  <span class="eyebrow">Your next action</span>
+                  <h3 id="next-action-title">Review this case</h3>
+                  <p id="next-action-detail"></p>
+                </div>
+                <button id="next-action-button" class="primary-action">Open case</button>
+              </section>
+            </header>
+
+            <nav class="folder-tabs tabs" aria-label="Case folder sections">
+              <button data-tab="review" class="active">Overview</button>
+              <button data-tab="evidence">Evidence</button>
+              <button data-tab="decision">Decide</button>
+              <button data-tab="timeline">History</button>
+            </nav>
+
+            <div class="folder-body">
+              <section id="tab-review" class="tab-panel">
+                <div class="overview-grid">
+                  <div class="overview-main">
+                    <section class="finding-panel">
+                      <div class="section-head">
+                        <div>
+                          <span class="eyebrow">What KLEAR found</span>
+                          <h3 id="primary-finding">Review pending</h3>
+                        </div>
+                        <span id="primary-finding-status" class="finding-status">Pending</span>
+                      </div>
+                      <p id="primary-finding-detail"></p>
+                      <button id="inspect-finding" class="text-button">Inspect supporting evidence</button>
+                    </section>
+
+                    <section class="case-brief-preview">
+                      <div class="section-head">
+                        <div>
+                          <span class="eyebrow">Prepared context</span>
+                          <h3>Grounded case brief</h3>
+                        </div>
+                        <span id="case-writer-badge" class="pill">NO BRIEF</span>
+                      </div>
+                      <div id="case-brief" class="brief"></div>
+                      <button id="open-full-brief" class="text-button">Open AI brief and citations</button>
+                    </section>
+                  </div>
+
+                  <aside class="overview-side">
+                    <section class="authority-panel">
+                      <span class="eyebrow">Decision authority</span>
+                      <div class="authority-row ai-authority">
+                        <strong>AI prepares</strong>
+                        <span>Context and grounded writing</span>
+                      </div>
+                      <div class="authority-row human-authority">
+                        <strong>Human decides</strong>
+                        <span>Only explicit actions change authority</span>
+                      </div>
+                    </section>
+
+                    <section class="readiness-panel">
+                      <span class="eyebrow">Case readiness</span>
+                      <div id="readiness"></div>
+                    </section>
+
+                    <section class="decision-snapshot-panel">
+                      <span class="eyebrow">Latest human event</span>
+                      <div id="decision-snapshot"></div>
+                    </section>
+
+                    <section class="artifacts-panel">
+                      <div class="section-head">
+                        <span class="eyebrow">Portable artifacts</span>
+                        <span class="artifact-count">3 files</span>
+                      </div>
+                      <button class="artifact-file" data-artifact="brief">
+                        <span class="file-type">MD</span>
+                        <span>
+                          <strong id="brief-filename">case-brief.md</strong>
+                          <small id="brief-file-meta">Prepared case context</small>
+                        </span>
+                        <span class="file-action">Open</span>
+                      </button>
+                      <button class="artifact-file" data-artifact="handoff">
+                        <span class="file-type handoff-type">MD</span>
+                        <span>
+                          <strong id="handoff-filename">decision-handoff.md</strong>
+                          <small id="handoff-file-meta">Latest state transfer</small>
+                        </span>
+                        <span class="file-action">Open</span>
+                      </button>
+                      <button class="artifact-file" data-artifact="packback">
+                        <span class="file-type packback-type">JSON</span>
+                        <span>
+                          <strong>pack-back.json</strong>
+                          <small id="packback-file-meta">Return an update to this case</small>
+                        </span>
+                        <span class="file-action">Import</span>
+                      </button>
+                    </section>
+                  </aside>
+                </div>
+
+                <details class="folder-details">
+                  <summary>Case facts and all rule results</summary>
+                  <div class="grid two detail-grid">
+                    <section>
+                      <h3>Normalized Facts</h3>
+                      <dl id="facts"></dl>
+                    </section>
+                    <section>
+                      <h3>Rule Results</h3>
+                      <div id="rules"></div>
+                    </section>
+                  </div>
+                  <section>
+                    <h3>Unknowns</h3>
+                    <div id="unknowns"></div>
+                  </section>
+                </details>
+              </section>
+
+              <section id="tab-evidence" class="tab-panel" hidden>
+                <header class="panel-heading">
+                  <span class="eyebrow">Truth lane</span>
+                  <h3>Evidence and rule traceability</h3>
+                  <p>Every finding links back to the source material used to establish it.</p>
+                </header>
+                <div class="grid two trace-grid">
+                  <section>
+                    <h3>Rules</h3>
+                    <div id="trace-rules"></div>
+                  </section>
+                  <section>
+                    <h3>Evidence</h3>
+                    <div id="trace-evidence"></div>
+                  </section>
+                </div>
+              </section>
+
+              <section id="tab-decision" class="tab-panel" hidden>
+                <header class="panel-heading">
+                  <span class="eyebrow">Human decision lane</span>
+                  <h3>Record an explicit decision</h3>
+                  <p>Every action creates a new immutable case version and an append-only decision event.</p>
+                </header>
+                <section class="decision-workbench">
+                  <form id="decision-form" class="form">
+                    <label>Action
+                      <select name="action">
+                        <option value="APPROVE">Approve</option>
+                        <option value="REJECT">Reject</option>
+                        <option value="REQUEST_EVIDENCE">Request evidence</option>
+                        <option value="ESCALATE">Escalate</option>
+                      </select>
+                    </label>
+                    <label>Reviewer name <input name="reviewer_name" value="Finance Reviewer" required></label>
+                    <label>Reason <textarea name="reason" required></textarea></label>
+                    <label>Required evidence <input name="required_evidence" placeholder="Required when requesting evidence"></label>
+                    <label>Escalation target <input name="escalation_target" placeholder="Required when escalating"></label>
+                    <button type="submit" class="primary-action">Submit human decision</button>
+                  </form>
+                  <pre id="decision-result"></pre>
+                </section>
+              </section>
+
+              <section id="tab-timeline" class="tab-panel" hidden>
+                <header class="panel-heading">
+                  <span class="eyebrow">Immutable history</span>
+                  <h3>Decision Timeline</h3>
+                  <p>A readable projection of the persisted case history, in order.</p>
+                </header>
+                <ol id="timeline" class="timeline"></ol>
+              </section>
             </div>
-          </section>
-
-          <section id="tab-timeline" class="tab-panel" hidden>
-            <article>
-              <h3>Decision Timeline</h3>
-              <ol id="timeline" class="timeline"></ol>
-            </article>
-          </section>
-
-          <section id="tab-decision" class="tab-panel" hidden>
-            <article>
-              <h3>Human Decision</h3>
-              <div class="lane human-lane single">
-                <strong>Human Decision Is Authoritative</strong>
-                <span>Terminal states require this explicit event path.</span>
-              </div>
-              <form id="decision-form" class="form">
-                <label>Action
-                  <select name="action">
-                    <option value="APPROVE">Approve</option>
-                    <option value="REJECT">Reject</option>
-                    <option value="REQUEST_EVIDENCE">Request evidence</option>
-                    <option value="ESCALATE">Escalate</option>
-                  </select>
-                </label>
-                <label>Reviewer name <input name="reviewer_name" value="Finance Reviewer" required></label>
-                <label>Reason <textarea name="reason" required></textarea></label>
-                <label>Required evidence <input name="required_evidence" placeholder="Required for REQUEST_EVIDENCE"></label>
-                <label>Escalation target <input name="escalation_target" placeholder="Required for ESCALATE"></label>
-                <button type="submit">Submit Decision</button>
-              </form>
-              <pre id="decision-result"></pre>
-            </article>
-          </section>
-
-          <section id="tab-handoff" class="tab-panel" hidden>
-            <article>
-              <div class="section-head">
-                <h3>Decision Handoff</h3>
-                <button id="copy-handoff">Copy Markdown</button>
-              </div>
-              <pre id="handoff-markdown"></pre>
-              <h3>Machine-readable Handoff</h3>
-              <pre id="handoff-json"></pre>
-            </article>
-          </section>
-
-          <section id="tab-packback" class="tab-panel" hidden>
-            <article>
-              <h3>Pack Back</h3>
-              <form id="packback-form" class="form">
-                <label>Structured pack-back JSON
-                  <textarea name="payload" rows="14"></textarea>
-                </label>
-                <button type="submit">Import Pack Back</button>
-              </form>
-              <pre id="packback-result"></pre>
-            </article>
-          </section>
           </div>
         </section>
       </div>
     </main>
+
+    <dialog id="artifact-dialog" class="artifact-dialog">
+      <div class="artifact-dialog-shell">
+        <header class="artifact-dialog-head">
+          <div>
+            <span id="artifact-kicker" class="eyebrow">Portable artifact</span>
+            <h2 id="artifact-title">Artifact</h2>
+            <p id="artifact-subtitle"></p>
+          </div>
+          <button id="close-artifact" class="quiet-button" aria-label="Close artifact">Close</button>
+        </header>
+
+        <section id="artifact-brief" class="artifact-view" hidden>
+          <div class="artifact-toolbar">
+            <span id="brief-artifact-state" class="pill">Not prepared</span>
+            <div class="button-row">
+              <button id="copy-brief">Copy</button>
+              <button id="download-brief">Download .md</button>
+            </div>
+          </div>
+          <div id="case-brief-document" class="rendered-document"></div>
+          <details class="artifact-generator">
+            <summary>Generate with a configured model</summary>
+            <form id="case-brief-form" class="form compact-form">
+              <label>API Key
+                <input name="api_key" type="password" autocomplete="off" placeholder="Optional local-only key">
+              </label>
+              <label>Model ID
+                <input name="model_id" placeholder="Configured at runtime">
+              </label>
+              <div class="button-row">
+                <button type="submit">Generate Brief</button>
+                <button type="button" id="clear-model-key">Clear Key</button>
+              </div>
+            </form>
+            <p class="meta">The key is used only for this local request and is never stored in the case.</p>
+            <pre id="case-brief-result"></pre>
+          </details>
+        </section>
+
+        <section id="artifact-handoff" class="artifact-view" hidden>
+          <div class="artifact-toolbar">
+            <span id="handoff-lineage" class="lineage"></span>
+            <div class="button-row">
+              <button id="copy-handoff">Copy</button>
+              <button id="download-handoff">Download .md</button>
+            </div>
+          </div>
+          <div id="handoff-overview" class="rendered-document"></div>
+          <details class="raw-artifact">
+            <summary>Raw Markdown</summary>
+            <pre id="handoff-markdown"></pre>
+          </details>
+          <details class="raw-artifact">
+            <summary>Machine-readable sidecar</summary>
+            <pre id="handoff-json"></pre>
+          </details>
+        </section>
+
+        <section id="artifact-packback" class="artifact-view" hidden>
+          <div class="rendered-document artifact-intro">
+            <span class="eyebrow">Return path</span>
+            <h3>Bring completed work back into this folder</h3>
+            <p>Paste or import the structured response created from the latest handoff. Accepted updates create a new case version; they cannot alter human decision history.</p>
+          </div>
+          <form id="packback-form" class="form">
+            <label>Structured pack-back JSON
+              <textarea name="payload" rows="14"></textarea>
+            </label>
+            <button type="submit" class="primary-action">Import Pack Back</button>
+          </form>
+          <pre id="packback-result"></pre>
+        </section>
+      </div>
+    </dialog>
 
     <script src="/app.js"></script>
   </body>

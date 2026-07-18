@@ -1,7 +1,7 @@
 # Reuse Inventory
 
 Created: 2026-07-16
-Last updated: 2026-07-17
+Last updated: 2026-07-18
 
 This file records file-level reuse decisions for the current KLEAR Decision Room implementation. Prior repositories are used as architecture, product, and data-shape influence only. No source code, prompts, generated outputs, UI copy, sponsor-specific branding, or demo assets are copied from either prior repository.
 
@@ -97,6 +97,15 @@ This file records file-level reuse decisions for the current KLEAR Decision Room
 | `apps/web/app.js` | Extended with import, review, brief, guardrail, handoff, pack-back, one-click proof, and good-vs-messy comparison actions. |
 | `apps/web/styles.css` | Extended with operational styling for the intake runway and lifecycle steps. |
 | `scripts/reset-demo-storage.js` | New local rehearsal helper that clears generated demo case storage without touching source files. |
+
+## Living Decision Folder UI Pass
+
+| Destination | New work description |
+| --- | --- |
+| `apps/web/index.html` | Reframed the operational console as a Living Decision Folder with focused overview, evidence, decision, and history sections plus portable artifact viewers. |
+| `apps/web/app.js` | Added derived current-state, primary-finding, next-action, artifact-document, and handoff-lineage presentation without creating a new source of truth. |
+| `apps/web/styles.css` | Added the newly written folder workspace, artifact shelf, focused document viewer, and responsive mobile presentation. No prior UI source code copied. |
+| `tests/reviewerUi.test.js` | Updated smoke coverage for the Living Decision Folder and portable artifact boundary. |
 
 ## Current Reuse Boundary
 
