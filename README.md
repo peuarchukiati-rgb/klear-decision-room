@@ -162,6 +162,12 @@ No `.env` file is required for the demo path. Without model credentials, the cas
 
 ## Public Demo Deployment
 
+Live judge preview:
+
+```text
+https://klear-decision-room.onrender.com
+```
+
 The repository includes a Render Blueprint for a public Node-hosted demo. Deploy it from:
 
 ```text
