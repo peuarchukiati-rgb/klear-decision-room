@@ -3,6 +3,7 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 
 const readme = await readFile("README.md", "utf8");
+const renderBlueprint = await readFile("render.yaml", "utf8");
 
 test("README presents product thesis and judge walkthrough", () => {
   assert.match(readme, /Where AI prepares decisions without owning them/);
@@ -19,6 +20,12 @@ test("README presents product thesis and judge walkthrough", () => {
   assert.match(readme, /Codex was used throughout Build Week/);
   assert.match(readme, /GPT-5\.6 was used/);
   assert.match(readme, /does not hardcode that model into runtime source/);
+  assert.match(readme, /Render Blueprint/);
+  assert.match(readme, /ephemeral filesystem/);
+  assert.match(readme, /Do not configure a shared OpenAI key/);
+  assert.match(renderBlueprint, /startCommand: npm run start:hosted/);
+  assert.match(renderBlueprint, /healthCheckPath: \/health/);
+  assert.match(renderBlueprint, /key: HOST[\s\S]*value: 0\.0\.0\.0/);
 });
 
 test("README avoids domain pivot branding", () => {

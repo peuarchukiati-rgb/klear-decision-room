@@ -6,6 +6,7 @@
   "description": "KLEAR Decision Room: evidence-first decision infrastructure for human-AI workflows.",
   "scripts": {
     "start": "node apps/api/src/server.js",
+    "start:hosted": "npm run seed-demo-queue && npm start",
     "dev": "node apps/api/src/server.js",
     "reset-demo": "node scripts/reset-demo-storage.js",
     "seed-demo-queue": "node scripts/seed-demo-queue.js",

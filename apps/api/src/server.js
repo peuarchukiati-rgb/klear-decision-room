@@ -19,6 +19,7 @@ import { runDeterministicReview } from "../../../packages/rules-engine/src/index
 import { getModelConfig } from "../../../src/config/modelConfig.js";
 
 const PORT = Number(process.env.PORT || 8787);
+const HOST = process.env.HOST || "127.0.0.1";
 const HUMAN_DECISION_PATCH_FIELDS = new Set(["human_decision", "human_decision_events"]);
 const TERMINAL_DECISION_STATUSES = new Set(["APPROVED", "REJECTED", "CLOSED"]);
 
@@ -287,7 +288,7 @@ export function createServer({ caseStore = new CaseStore() } = {}) {
 }
 
 if (fileURLToPath(import.meta.url) === process.argv[1]) {
-  createServer().listen(PORT, () => {
-    console.log(`KLEAR Decision Room API listening on http://127.0.0.1:${PORT}`);
+  createServer().listen(PORT, HOST, () => {
+    console.log(`KLEAR Decision Room API listening on http://${HOST}:${PORT}`);
   });
 }

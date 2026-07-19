@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: klear-decision-room
+    runtime: node
+    plan: free
+    buildCommand: npm ci
+    startCommand: npm run start:hosted
+    healthCheckPath: /health
+    envVars:
+      - key: HOST
+        value: 0.0.0.0

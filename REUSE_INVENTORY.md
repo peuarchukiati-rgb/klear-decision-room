@@ -119,6 +119,14 @@ This file records file-level reuse decisions for the current KLEAR Decision Room
 | `packages/case-insights/src/timeline.js` | Added the derived “Unsafe approval blocked” timeline label from persisted case history. |
 | `tests/demoQueue.test.js`, `tests/humanDecision.test.js`, `tests/reviewerUi.test.js` | Added deterministic queue, blocked-attempt invariant, and intro presentation coverage. |
 
+## Public Demo Deployment
+
+| Destination | New work description |
+| --- | --- |
+| `render.yaml` | New Render Blueprint for the public Node-hosted judge preview, including health checks and hosted startup configuration. No prior deployment configuration reused. |
+| `package.json` | Added a hosted startup script that seeds the neutral four-case queue before serving the application. |
+| `apps/api/src/server.js` | Added environment-configured host binding so the same server runs locally and on a public Node host. |
+
 ## Current Reuse Boundary
 
 - `source_code_copied`: none

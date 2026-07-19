@@ -34,3 +34,4 @@
 - Made blocked approval attempts auditable as versioned history events while preserving status, `human_decision`, and canonical `human_decision_events` unchanged.
 - Changed the topbar demo control into a high-contrast one-click `Run Demo` action and made `Refresh` reset only the presentation state to the blank post-intro workspace without deleting cases or audit history.
 - Cleared request-scoped API keys from the reviewer form and in-memory credential state immediately after successful case-brief generation while retaining the configured model ID.
+- Added a Render Blueprint and hosted start path for a public judge-preview URL, with explicit ephemeral-state disclosure, automatic demo-queue seeding on service start, and no shared provider key on the host.

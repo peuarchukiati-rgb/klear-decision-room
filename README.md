@@ -160,6 +160,18 @@ The same server serves the static reviewer console at `/`.
 
 No `.env` file is required for the demo path. Without model credentials, the case writer uses a deterministic fallback so the full reviewer workflow still runs from a fresh clone.
 
+## Public Demo Deployment
+
+The repository includes a Render Blueprint for a public Node-hosted demo. Deploy it from:
+
+```text
+https://dashboard.render.com/blueprint/new?repo=https://github.com/peuarchukiati-rgb/klear-decision-room
+```
+
+The hosted start command seeds the four-case rehearsal queue before starting the API. Render free services use an ephemeral filesystem, so the public demo intentionally resets to that known queue after a restart, redeploy, or idle spin-down. This is a judge-preview boundary, not production persistence.
+
+Do not configure a shared OpenAI key in the public host. Judges can use deterministic fallback or provide their own key and model ID through the request-scoped reviewer-console fields.
+
 ## Live Model Demo
 
 The reviewer console also supports a bring-your-own-key live model run for judges who want to see the grounded case writer call a model without restarting the server.
