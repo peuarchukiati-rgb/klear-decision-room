@@ -41,6 +41,10 @@
       </div>
       <div class="topbar-context">
         <span class="workspace-name">Finance Approval Workspace</span>
+        <button id="show-live-model" class="topbar-model-button" aria-label="Use Live Model">
+          <span>Bring your own key</span>
+          <strong>Use Live Model</strong>
+        </button>
         <button id="show-demo" class="topbar-demo-button demo-cta-pulse" aria-label="Run Demo">
           <span>Live proof</span>
           <strong>Run Demo</strong>
@@ -332,11 +336,11 @@
             </div>
           </div>
           <div id="case-brief-document" class="rendered-document"></div>
-          <details class="artifact-generator">
+          <details id="artifact-generator" class="artifact-generator">
             <summary>Generate with a configured model</summary>
             <form id="case-brief-form" class="form compact-form">
               <label>API Key
-                <input name="api_key" type="password" autocomplete="off" placeholder="Optional local-only key">
+                <input name="api_key" type="password" autocomplete="off" placeholder="Request-scoped API key">
               </label>
               <label>Model ID
                 <input name="model_id" placeholder="Configured at runtime">
@@ -346,7 +350,7 @@
                 <button type="button" id="clear-model-key">Clear Key</button>
               </div>
             </form>
-            <p class="meta">The key is used only for this request, cleared after generation, and never stored in the case.</p>
+            <p class="meta">The key is sent only for this request, cleared after every attempt, and never stored in the case, history, or handoff.</p>
             <pre id="case-brief-result"></pre>
           </details>
         </section>

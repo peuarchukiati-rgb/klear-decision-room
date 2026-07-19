@@ -810,6 +810,25 @@ function clearLiveModelApiKey(form = el("case-brief-form")) {
   form.api_key.value = "";
 }
 
+async function openLiveModelSetup() {
+  if (!selectedCaseId) {
+    const targetCaseId = curatedHeroCaseId || document.querySelector("[data-case-id]")?.dataset.caseId;
+    if (!targetCaseId) {
+      writeRunway("Run or select a case before generating a live model brief.");
+      return;
+    }
+    await selectCase(targetCaseId);
+  }
+
+  openArtifact("brief");
+  el("artifact-generator").open = true;
+  requestAnimationFrame(() => el("case-brief-form").api_key.focus());
+}
+
+el("show-live-model").addEventListener("click", () => {
+  openLiveModelSetup().catch((error) => writeRunway(error.message));
+});
+
 el("clear-model-key").addEventListener("click", () => clearLiveModelApiKey());
 
 el("case-brief-form").addEventListener("submit", async (event) => {
@@ -828,7 +847,6 @@ el("case-brief-form").addEventListener("submit", async (event) => {
       method: "POST",
       body: JSON.stringify(payload)
     });
-    clearLiveModelApiKey(form);
     el("case-brief-result").textContent = result.case_writer.model_called
       ? `LIVE MODEL generated brief with ${result.case_writer.model_id}.`
       : "Fallback brief generated without a model call.";
@@ -836,6 +854,8 @@ el("case-brief-form").addEventListener("submit", async (event) => {
     await loadCases();
   } catch (error) {
     el("case-brief-result").textContent = error.message;
+  } finally {
+    clearLiveModelApiKey(form);
   }
 });
 

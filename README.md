@@ -182,13 +182,13 @@ Do not configure a shared OpenAI key in the public host. Judges can use determin
 
 The reviewer console also supports a bring-your-own-key live model run for judges who want to see the grounded case writer call a model without restarting the server.
 
-1. Open `http://127.0.0.1:8787/`.
-2. Select a reviewed case.
-3. Open the `case-brief.md` artifact, expand **Generate with a configured model**, and paste an OpenAI API key and a `Model ID`.
+1. Open the [public demo](https://klear-decision-room.onrender.com) or `http://127.0.0.1:8787/` locally.
+2. Click **Use Live Model** in the workspace header. KLEAR targets the selected case, or the curated bank-mismatch case when none is selected.
+3. Paste an OpenAI API key and a `Model ID` into the opened request-scoped form.
 4. Use the smallest suitable model to prove the architecture, not model size, carries the trust boundary.
 5. Click **Generate Brief** and watch the badge change from `OFFLINE BRIEF` to `LIVE MODEL`.
 
-The key is sent only from the browser to the local API for that one request. It is not stored in `DecisionCase`, version snapshots, handoff artifacts, history, or any file under `storage/`. This is a localhost demo convenience, not a hosted secret-management flow.
+The key is sent only from the browser to the API for that one request and cleared from the form after every attempt. It is not stored in `DecisionCase`, version snapshots, handoff artifacts, history, or any file under `storage/`. The public demo is bring-your-own-key and never carries a shared server-side key.
 
 ## Tests
 

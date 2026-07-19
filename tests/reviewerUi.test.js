@@ -12,6 +12,8 @@ test("static reviewer UI exposes Phase 4 operational panels", async () => {
     "Check the case in detail. Prepare the evidence. Hand it to a human to decide.",
     "KLEAR verifies what is known, preserves what is unknown, and never owns the decision.",
     "Run Demo",
+    "Bring your own key",
+    "Use Live Model",
     "Run Bank-Mismatch Demo",
     "Every day, someone has to approve a payment before it goes out",
     "It's Friday, 4:15 PM. This invoice looks normal",
@@ -58,7 +60,9 @@ test("static reviewer UI exposes Phase 4 operational panels", async () => {
   assert.ok(js.includes("/decisions"));
   assert.ok(js.includes("/pack-back"));
   assert.ok(js.includes("LIVE MODEL"));
+  assert.ok(js.includes("openLiveModelSetup"));
+  assert.ok(html.includes("Request-scoped API key"));
   assert.ok(js.includes("beforeunload"));
-  assert.match(js, /await api\(`\/cases\/\$\{selectedCaseId\}\/case-brief`[\s\S]*clearLiveModelApiKey\(form\)/);
+  assert.match(js, /await api\(`\/cases\/\$\{selectedCaseId\}\/case-brief`[\s\S]*finally[\s\S]*clearLiveModelApiKey\(form\)/);
   assert.ok(js.includes("confirm("));
 });

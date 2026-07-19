@@ -271,6 +271,35 @@ h3 {
   text-align: left;
 }
 
+.topbar-model-button {
+  display: grid;
+  gap: 1px;
+  min-width: 132px;
+  border-color: #7d9185;
+  background: #f4f8f5;
+  color: #244f3b;
+  line-height: 1.05;
+  text-align: left;
+}
+
+.topbar-model-button:hover {
+  border-color: var(--green);
+  background: var(--green-soft);
+}
+
+.topbar-model-button span {
+  color: var(--muted);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.topbar-model-button strong {
+  font-size: 13px;
+  letter-spacing: 0;
+}
+
 .topbar-demo-button:hover {
   border-color: #4e1513;
   background: #8a2c28;
@@ -1257,6 +1286,20 @@ pre {
   .demo-stage {
     padding-left: 14px;
     padding-right: 14px;
+  }
+
+  .topbar {
+    align-items: flex-start;
+  }
+
+  .topbar-context {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .topbar-model-button,
+  .topbar-demo-button {
+    min-width: 112px;
   }
 
   .folder-workspace {
