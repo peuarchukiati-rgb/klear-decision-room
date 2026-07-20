@@ -176,14 +176,14 @@ https://dashboard.render.com/blueprint/new?repo=https://github.com/peuarchukiati
 
 The hosted start command seeds the four-case rehearsal queue before starting the API. Render free services use an ephemeral filesystem, so the public demo intentionally resets to that known queue after a restart, redeploy, or idle spin-down. This is a judge-preview boundary, not production persistence.
 
-Configure `KLEAR_MODEL_ID` on the public host. Do not configure a shared OpenAI key there; judges provide only their own request-scoped key through the reviewer console.
+The bundled model selection lives in `config/model.json` and can be overridden with `KLEAR_MODEL_ID`. Do not configure a shared OpenAI key on the public host; judges provide only their own request-scoped key through the reviewer console.
 
 ## Live Model Demo
 
 The reviewer console presents OpenAI as a visible, replaceable case-writing layer. Offline mode verifies deterministic truth and then stops visibly; a judge-provided OpenAI API key unlocks the complete bank-mismatch lifecycle.
 
 1. Open the [public demo](https://klear-decision-room.onrender.com) or `http://127.0.0.1:8787/` locally.
-2. In **Model Connection**, paste an OpenAI API key into the visible request-scoped field. The deployment supplies its model ID through `KLEAR_MODEL_ID` configuration.
+2. In **Model Connection**, paste an OpenAI API key into the visible request-scoped field. KLEAR uses the bundled model configuration; no model selection is required in the reviewer UI.
 3. Click **Connect & Run Live**. The Truth Layer remains deterministic, only the Grounded Case Writer calls the model, and the Human Decision lane remains authoritative.
 4. Watch the Case Writer state change from red `OpenAI not connected` to `OpenAI live` while the same server-side guardrails continue to block unsafe approval.
 
@@ -201,15 +201,15 @@ The tests cover deterministic rules, evidence citation integrity, model-output v
 
 Codex was used throughout Build Week to inspect the prior repositories, implement and test the DecisionCase architecture, build the deterministic truth and human-decision lanes, and iterate on the reviewer experience. GPT-5.6 was used for architecture reasoning, implementation review, and the grounded case-writer path demonstrated in the product.
 
-The product does not hardcode that model into runtime source. Operators supply the available model ID through environment configuration; the same grounded-output validator and human-decision boundary apply regardless of model size.
+The product does not hardcode that model into runtime source. Model selection lives in `config/model.json`, with an optional `KLEAR_MODEL_ID` environment override; the same grounded-output validator and human-decision boundary apply regardless of model size.
 
 ## Model Configuration
 
 Deterministic review never calls a model.
 
-The case writer calls a model only when both `OPENAI_API_KEY` and `KLEAR_MODEL_ID` are configured. Without credentials, its service-level deterministic fallback remains available for resilience and tests, while the visible offline demo stops before case writing.
+The case writer calls a model only when an `OPENAI_API_KEY` is supplied and model configuration resolves successfully. Without credentials, its service-level deterministic fallback remains available for resilience and tests, while the visible offline demo stops before case writing.
 
-For the reviewer console, the API key is supplied per request through the masked field and discarded after the request. The model ID remains deployment configuration and is never requested from the reviewer.
+For the reviewer console, the API key is supplied per request through the masked field and discarded after the request. The model ID remains bundled/deployment configuration and is never requested from the reviewer.
 
 Model identifiers must come from environment or config and must not be hardcoded in source.
 

@@ -1,7 +1,7 @@
 # Reuse Inventory
 
 Created: 2026-07-16
-Last updated: 2026-07-18
+Last updated: 2026-07-20
 
 This file records file-level reuse decisions for the current KLEAR Decision Room implementation. Prior repositories are used as architecture, product, and data-shape influence only. No source code, prompts, generated outputs, UI copy, sponsor-specific branding, or demo assets are copied from either prior repository.
 
@@ -13,7 +13,7 @@ This file records file-level reuse decisions for the current KLEAR Decision Room
 | `kfc-p1-finance-reviewer/data/vendor_master.json` | Data-model reference | `data/demo/vendor-master.json` | Vendor-master concept reused with new neutral synthetic vendors and fields. |
 | `kfc-p1-finance-reviewer/data/paid_ledger.json` | Data-model reference | `data/demo/paid-ledger.json` | Paid-ledger anchor concept reused with new neutral synthetic records. |
 | `kfc-p1-finance-reviewer/data/incoming_batch.json` | Scenario reference | `data/demo/demo-invoices.json`, `data/demo/scenarios.json` | Scenario shape reused as finance demo inspiration; records are newly authored. |
-| `kfc-p1-finance-reviewer/reason_writer.py` | Boundary reference | `packages/case-writer/src/*`, `src/config/modelConfig.js` | AI-as-case-writer boundary reused. KLEAR Decision Room implements a newly written OpenAI Responses API case writer with structured output validation, env/config model IDs, and deterministic fallback. No source code copied. |
+| `kfc-p1-finance-reviewer/reason_writer.py`, `docs/index.html` | Boundary and interaction reference | `packages/case-writer/src/*`, `src/config/modelConfig.js`, `config/model.json`, `apps/web/index.html` | AI-as-case-writer boundary and key-only reviewer interaction reused. KLEAR Decision Room implements a newly written OpenAI Responses API case writer with structured output validation, config-owned model selection, environment override, and deterministic fallback. No source code copied. |
 | `kfc-p1-finance-reviewer/build_report.py` | Concept reference | `packages/handoff/src/handoffGenerator.js` | Human + machine handoff idea reused; implementation is newly written with Phase 4 lineage fields. |
 | `kfc-p1-finance-reviewer/output/*` | Not reused | None | Generated outputs are prior work and excluded. |
 | `klear/README.md` | Concept reference | `README.md`, `docs/architecture.md` | Canonical-state and living-handoff concepts reused, rewritten for decision cases. |

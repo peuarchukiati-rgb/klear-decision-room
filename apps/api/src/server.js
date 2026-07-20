@@ -91,7 +91,11 @@ function assertNoHumanDecisionBypass(patch = {}) {
   }
 }
 
-export async function handleRequest(req, res, store = new CaseStore(), { fetchImpl, modelEnv = process.env } = {}) {
+export async function handleRequest(req, res, store = new CaseStore(), {
+  fetchImpl,
+  modelEnv = process.env,
+  resolveModelConfig = getModelConfig
+} = {}) {
   const url = new URL(req.url, `http://${req.headers.host || "localhost"}`);
   const pathname = url.pathname;
 
@@ -230,13 +234,14 @@ export async function handleRequest(req, res, store = new CaseStore(), { fetchIm
     if (caseBriefCaseId && req.method === "POST") {
       const body = await readJson(req);
       const hasRequestKey = Boolean(body.api_key);
-      if (hasRequestKey && !modelEnv.KLEAR_MODEL_ID) {
+      const modelConfig = resolveModelConfig(modelEnv);
+      if (hasRequestKey && !modelConfig.model_id) {
         throw new Error("Live case writer is not configured on this deployment");
       }
       const env = {
         ...modelEnv,
         OPENAI_API_KEY: body.api_key || modelEnv.OPENAI_API_KEY,
-        KLEAR_MODEL_ID: modelEnv.KLEAR_MODEL_ID
+        KLEAR_MODEL_ID: modelConfig.model_id
       };
       const result = await writeGroundedCaseBrief(store, caseBriefCaseId, {
         env,

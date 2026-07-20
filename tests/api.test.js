@@ -371,7 +371,10 @@ test("API fails closed when a request key is supplied without deployment model c
     url: `/cases/${caseId}/case-brief`,
     body: { api_key: "not-persisted" },
     store,
-    options: { modelEnv: {} }
+    options: {
+      modelEnv: {},
+      resolveModelConfig: () => ({ model_id: "", source: "test" })
+    }
   });
 
   assert.equal(briefRes.status, 400);

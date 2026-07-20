@@ -67,7 +67,7 @@ curl -X POST http://127.0.0.1:8787/cases/$CASE_ID/case-brief
 
 4. Refresh the reviewer console.
 5. Inspect normalized facts, readiness, rule results, unknowns, traceability, and Decision Timeline.
-6. For the judge-facing live beat, configure `KLEAR_MODEL_ID` on the server, paste only an OpenAI API key into the visible **Model Connection** field, and click **Connect & Run Live**. The red `OpenAI not connected` lane should change to `OpenAI live`.
+6. For the judge-facing live beat, paste only an OpenAI API key into the visible **Model Connection** field and click **Connect & Run Live**. KLEAR resolves the bundled model configuration behind the UI; the red `OpenAI not connected` lane should change to `OpenAI live`.
 7. Submit `REQUEST_EVIDENCE` with reviewer identity, reason, and required evidence.
 8. Open the Handoff view and inspect Markdown plus JSON. Point out:
    - `handoff_id`
