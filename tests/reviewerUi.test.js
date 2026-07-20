@@ -5,10 +5,12 @@ import test from "node:test";
 test("static reviewer UI exposes Phase 4 operational panels", async () => {
   const html = await readFile("apps/web/index.html", "utf8");
   const js = await readFile("apps/web/app.js", "utf8");
+  const css = await readFile("apps/web/styles.css", "utf8");
 
   for (const label of [
     "Live Demo Mode",
     "Payment Review Simulation",
+    "Ready to run.",
     "Check the case in detail. Prepare the evidence. Hand it to a human to decide.",
     "KLEAR verifies what is known, preserves what is unknown, and never owns the decision.",
     "Run Demo",
@@ -74,6 +76,12 @@ test("static reviewer UI exposes Phase 4 operational panels", async () => {
   assert.ok(js.includes("openLiveModelSetup"));
   assert.ok(js.includes("prepareLiveBrief"));
   assert.ok(js.includes("runBankMismatchDemo"));
+  assert.ok(js.includes("activateProofStep"));
+  assert.ok(js.includes("failActiveProofStep"));
+  assert.ok(js.includes("OpenAI is preparing a grounded brief from verified facts, evidence, and rule results..."));
+  assert.ok(css.includes(".runway-activity.active"));
+  assert.ok(css.includes(".step.active"));
+  assert.ok(css.includes("button.is-busy"));
   assert.ok(html.includes("Request-scoped API key"));
   assert.ok(!html.includes("name=\"model_id\""));
   assert.ok(js.includes("Truth verification completed, but this decision journey remains incomplete."));

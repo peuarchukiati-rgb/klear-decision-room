@@ -10,6 +10,7 @@ let demoRunnerPinned = false;
 let curatedHeroCaseId = null;
 let introActive = false;
 const INTRO_DISMISSED_KEY = "klear-demo-intro-v1";
+const PROOF_STEP_LABELS = ["Intake received", "Truth verified", "Grounded brief prepared", "Unsafe approval blocked", "Human decision recorded", "Handoff acknowledged, evidence pending"];
 
 async function api(path, options = {}) {
   const response = await fetch(path, {
@@ -186,20 +187,53 @@ function writeRunway(lines) {
   el("runway-result").textContent = Array.isArray(lines) ? lines.join("\n") : lines;
 }
 
-function setRunwayBusy(isBusy) {
-  for (const id of ["start-live-demo", "run-offline-demo", "compare-intakes", "import-packet", "run-review", "run-brief", "try-blocked-approve", "request-evidence", "import-demo-packback"]) {
+function setRunwayBusy(isBusy, mode = "") {
+  for (const id of ["show-demo", "start-live-demo", "run-offline-demo", "compare-intakes", "import-packet", "run-review", "run-brief", "try-blocked-approve", "request-evidence", "import-demo-packback"]) {
     const button = el(id);
     if (button) button.disabled = isBusy;
   }
   const liveSubmit = el("case-brief-form")?.querySelector("button[type='submit']");
   if (liveSubmit) liveSubmit.disabled = isBusy;
+
+  document.querySelectorAll(".is-busy").forEach((button) => button.classList.remove("is-busy"));
+  const busyButtons = mode === "live"
+    ? [liveSubmit]
+    : mode === "offline"
+      ? [el("show-demo"), el("start-live-demo"), el("run-offline-demo")]
+      : [];
+  if (isBusy) {
+    busyButtons.filter(Boolean).forEach((button) => button.classList.add("is-busy"));
+  }
+  el("start-live-demo").textContent = isBusy && mode === "offline" ? "Running offline check..." : "Run Bank-Mismatch Demo";
+  el("run-offline-demo").textContent = isBusy && mode === "offline" ? "Running offline check..." : "Run Offline Demo";
+  if (liveSubmit) liveSubmit.textContent = isBusy && mode === "live" ? "Running live review..." : "Connect & Run Live";
 }
 
 function markProofStep(index, state = "done") {
   const steps = Array.from(document.querySelectorAll("#runway-steps .step"));
   if (steps[index]) {
-    steps[index].classList.remove("done", "blocked", "pending");
+    steps[index].classList.remove("active", "done", "blocked", "pending");
     steps[index].classList.add(state);
+  }
+}
+
+function setRunwayActivity(text, state = "active") {
+  const activity = el("runway-activity");
+  activity.className = `runway-activity ${state}`;
+  el("runway-activity-text").textContent = text;
+}
+
+function activateProofStep(index, label, activityText) {
+  setProofStepLabel(index, label);
+  markProofStep(index, "active");
+  setRunwayActivity(activityText);
+}
+
+function failActiveProofStep() {
+  const activeStep = document.querySelector("#runway-steps .step.active");
+  if (activeStep) {
+    activeStep.classList.remove("active");
+    activeStep.classList.add("blocked");
   }
 }
 
@@ -209,10 +243,9 @@ function setProofStepLabel(index, label) {
 }
 
 function clearProofSteps() {
-  const labels = ["Intake received", "Truth verified", "Grounded brief prepared", "Unsafe approval blocked", "Human decision recorded", "Handoff acknowledged, evidence pending"];
   document.querySelectorAll("#runway-steps .step").forEach((step, index) => {
-    step.classList.remove("done", "blocked", "pending");
-    step.textContent = labels[index];
+    step.classList.remove("active", "done", "blocked", "pending");
+    step.textContent = PROOF_STEP_LABELS[index];
   });
 }
 
@@ -240,7 +273,7 @@ function updateRunway(story = currentStory) {
     Boolean(decisionCase?.pack_back_events?.length)
   ];
   steps.forEach((step, index) => {
-    if (states[index] !== null) {
+    if (states[index] !== null && !step.classList.contains("active")) {
       step.classList.toggle("done", states[index]);
     }
   });
@@ -359,6 +392,7 @@ async function resetWorkspaceView() {
   el("runway-status").textContent = "No intake imported";
   el("runway-result").textContent = "Run offline to verify truth, or connect OpenAI to complete the live decision lifecycle.";
   clearProofSteps();
+  setRunwayActivity("Ready to run.", "idle");
   el("show-demo").classList.add("demo-cta-pulse");
   await loadCases({ selectFirst: false });
 }
@@ -633,7 +667,7 @@ async function runBankMismatchDemo({ credentials = null } = {}) {
   const usingLiveModel = Boolean(credentials?.api_key);
   el("start-live-demo").classList.remove("demo-cta-pulse");
   el("show-demo").classList.remove("demo-cta-pulse");
-  setRunwayBusy(true);
+  setRunwayBusy(true, usingLiveModel ? "live" : "offline");
   clearProofSteps();
   const lines = [
     `Starting bank-mismatch simulation in ${usingLiveModel ? "live model" : "offline"} mode...`,
@@ -642,6 +676,7 @@ async function runBankMismatchDemo({ credentials = null } = {}) {
   writeRunway(lines);
 
   try {
+    activateProofStep(0, "Receiving intake...", "Receiving invoice and source records...");
     let decisionCase;
     let reusedCuratedHero = false;
     if (curatedHeroCaseId) {
@@ -652,15 +687,18 @@ async function runBankMismatchDemo({ credentials = null } = {}) {
     } else {
       decisionCase = await importDemoPacket("DEMO-HANDOFF-SCN-BANK-MISMATCH");
     }
+    setProofStepLabel(0, PROOF_STEP_LABELS[0]);
     markProofStep(0);
     lines.push(`Intake received as ${decisionCase.case_id}.`);
     writeRunway(lines);
     await sleep(650);
 
+    activateProofStep(1, "Verifying truth...", "Running deterministic evidence and policy checks...");
     const reviewed = reusedCuratedHero
       ? { case: decisionCase }
       : await runTruthReview(decisionCase.case_id);
     const bankRule = reviewed.case.rule_results.find((rule) => rule.rule_id === "R-003");
+    setProofStepLabel(1, PROOF_STEP_LABELS[1]);
     markProofStep(1);
     lines.push(`Truth lane result: ${bankRule.rule_id} ${bankRule.status} - ${bankRule.summary}`);
     writeRunway(lines);
@@ -668,8 +706,11 @@ async function runBankMismatchDemo({ credentials = null } = {}) {
     await sleep(650);
 
     if (!usingLiveModel) {
+      activateProofStep(2, "Checking OpenAI connection...", "Checking whether the live case writer is available...");
+      await sleep(450);
       setProofStepLabel(2, "OpenAI not connected");
       markProofStep(2, "blocked");
+      setRunwayActivity("Stopped: connect OpenAI to prepare the grounded brief.", "error");
       lines.push("OPENAI NOT CONNECTED: the live grounded case brief cannot be prepared.");
       lines.push("Truth verification completed, but this decision journey remains incomplete.");
       writeRunway(lines);
@@ -682,7 +723,9 @@ async function runBankMismatchDemo({ credentials = null } = {}) {
       return;
     }
 
+    activateProofStep(2, "Preparing grounded brief...", "OpenAI is preparing a grounded brief from verified facts, evidence, and rule results...");
     const brief = await prepareLiveBrief(decisionCase.case_id, credentials);
+    setProofStepLabel(2, PROOF_STEP_LABELS[2]);
     markProofStep(2);
     if (brief.case_writer.model_called) {
       lines.push("Grounded case brief prepared by OpenAI.");
@@ -696,6 +739,7 @@ async function runBankMismatchDemo({ credentials = null } = {}) {
     await selectCase(decisionCase.case_id);
     await sleep(650);
 
+    activateProofStep(3, "Testing approval guardrail...", "Testing whether the verified evidence state permits approval...");
     const approval = await attemptApproval(decisionCase.case_id);
     if (!approval.blocked) {
       throw new Error(approval.message);
@@ -705,15 +749,20 @@ async function runBankMismatchDemo({ credentials = null } = {}) {
     writeRunway(lines);
     await sleep(650);
 
+    activateProofStep(4, "Recording human action...", "Recording the reviewer evidence request as an explicit decision event...");
     const decision = await requestEvidenceDecision(decisionCase.case_id);
+    setProofStepLabel(4, PROOF_STEP_LABELS[4]);
     markProofStep(4);
     lines.push(`Human decision recorded: ${decision.decision_event.decision_event_id} REQUEST_EVIDENCE.`);
     writeRunway(lines);
     await selectCase(decisionCase.case_id);
     await sleep(650);
 
+    activateProofStep(5, "Preparing handoff...", "Preparing the versioned handoff and acknowledgement...");
     const packBack = await importPackBackFromStory(currentStory);
+    setProofStepLabel(5, PROOF_STEP_LABELS[5]);
     markProofStep(5, "pending");
+    setRunwayActivity("Live review complete. Evidence remains pending.", "pending");
     lines.push(`Handoff acknowledged: ${packBack.pack_back.pack_back_id}. Evidence is still pending.`);
     lines.push("Proof: the payment remains blocked until a human confirms the vendor bank account. AI prepared the case, but never closed it.");
     writeRunway(lines);
@@ -722,6 +771,8 @@ async function runBankMismatchDemo({ credentials = null } = {}) {
     switchTab("timeline");
     document.querySelector(".app-shell").scrollIntoView({ behavior: "smooth", block: "start" });
   } catch (error) {
+    failActiveProofStep();
+    setRunwayActivity(`Stopped: ${error.message}`, "error");
     lines.push(`Demo stopped: ${error.message}`);
     writeRunway(lines);
     setModelConnectionState("OpenAI connection failed", "Check the API key and server configuration");

@@ -50,3 +50,4 @@
 - Removed model-ID entry and model-slug presentation from the reviewer UI; the deployment now owns `KLEAR_MODEL_ID` while reviewers provide only a request-scoped OpenAI API key.
 - Changed the offline judge path to stop visibly after deterministic truth verification, before case writing or any new human-decision/handoff event, so offline resilience is never presented as a live OpenAI run.
 - Matched the prior KFC/KLEAR key-only interaction pattern by moving the default OpenAI model selection into `config/model.json`; reviewers now supply only an API key, while deployments may still override the model through `KLEAR_MODEL_ID`.
+- Added observable processing states across the guided lifecycle: the active lane, request button, and plain-language activity line now show what operation is running without exposing or fabricating model reasoning.

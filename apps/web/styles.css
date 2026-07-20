@@ -133,6 +133,12 @@ body.intro-open {
     animation: none;
     outline: 3px solid rgba(168, 50, 45, 0.24);
   }
+
+  .runway-activity.active .activity-spinner,
+  .step.active::before,
+  button.is-busy::before {
+    animation: none;
+  }
 }
 
 button,
@@ -594,7 +600,46 @@ h3 {
   margin: 12px 0 8px;
 }
 
+.runway-activity {
+  display: flex;
+  align-items: center;
+  min-height: 18px;
+  gap: 7px;
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 650;
+}
+
+.runway-activity.active {
+  color: var(--blue);
+}
+
+.runway-activity.error {
+  color: var(--red);
+}
+
+.runway-activity.pending {
+  color: var(--amber);
+}
+
+.activity-spinner {
+  width: 12px;
+  height: 12px;
+  flex: 0 0 12px;
+  visibility: hidden;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+}
+
+.runway-activity.active .activity-spinner {
+  visibility: visible;
+  animation: klear-spin 0.75s linear infinite;
+}
+
 .step {
+  position: relative;
   min-height: 44px;
   display: grid;
   align-content: center;
@@ -605,6 +650,55 @@ h3 {
   color: #4a5651;
   font-size: 11px;
   text-align: center;
+}
+
+.step.active {
+  border-color: var(--blue);
+  background: var(--blue-soft);
+  color: var(--blue);
+  padding-left: 25px;
+}
+
+.step.active::before {
+  position: absolute;
+  top: 50%;
+  left: 9px;
+  width: 11px;
+  height: 11px;
+  margin-top: -7px;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  content: "";
+  animation: klear-spin 0.75s linear infinite;
+}
+
+button.is-busy {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+button.is-busy:disabled {
+  opacity: 0.85;
+}
+
+button.is-busy::before {
+  width: 12px;
+  height: 12px;
+  flex: 0 0 12px;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  content: "";
+  animation: klear-spin 0.75s linear infinite;
+}
+
+@keyframes klear-spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .step.done {
