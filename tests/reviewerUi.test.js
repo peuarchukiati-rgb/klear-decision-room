@@ -14,9 +14,9 @@ test("static reviewer UI exposes Phase 4 operational panels", async () => {
     "Check the case in detail. Prepare the evidence. Hand it to a human to decide.",
     "KLEAR verifies what is known, preserves what is unknown, and never owns the decision.",
     "Run Demo",
-    "Model Connection",
-    "Connect OpenAI to complete the live workflow.",
-    "The decision engine is KLEAR. OpenAI is connected only for the grounded case-writing lane.",
+    "Connect OpenAI",
+    "Connect OpenAI for the grounded case writer",
+    "The truth layer remains deterministic. Human decision authority remains separate.",
     "Truth Layer",
     "Deterministic",
     "Case Writer",
@@ -35,16 +35,18 @@ test("static reviewer UI exposes Phase 4 operational panels", async () => {
     "Finance Approval Workspace",
     "Approvals",
     "Next action",
-    "What happened",
+    "What needs attention",
     "Validation receipt",
     "Checked before display",
-    "Files",
+    "Audit details",
+    "Portable files",
+    "Technical run log",
     "Handoff acknowledged, evidence pending",
     "Demo intake packet",
     "Import Intake",
     "Run Truth Review",
     "Try Blocked Approve",
-    "Normalized Facts",
+    "Normalized facts",
     "Evidence",
     "Decision Timeline",
     "Record an explicit decision",
@@ -89,6 +91,11 @@ test("static reviewer UI exposes Phase 4 operational panels", async () => {
   assert.ok(css.includes("button.is-busy"));
   assert.ok(html.includes("Request-scoped API key"));
   assert.ok(!html.includes("name=\"model_id\""));
+  assert.ok(html.includes("<dialog id=\"model-dialog\""));
+  assert.ok(html.includes("id=\"evidence-glance\""));
+  assert.ok(html.includes("<details class=\"audit-details\">"));
+  assert.ok(html.includes("<details class=\"proof-log\">"));
+  assert.ok(js.includes("renderEvidenceGlance"));
   assert.ok(js.includes("Truth verification completed, but this decision journey remains incomplete."));
   assert.ok(js.includes("setProofStepLabel(2, \"OpenAI not connected\")"));
   assert.ok(js.includes("beforeunload"));

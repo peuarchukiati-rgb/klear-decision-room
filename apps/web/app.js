@@ -117,9 +117,10 @@ function dismissIntro({ pulse = true } = {}) {
   introActive = false;
   el("intro-overlay").hidden = true;
   document.body.classList.remove("intro-open");
-  demoRunnerPinned = true;
-  el("demo-runner").hidden = false;
+  demoRunnerPinned = false;
+  el("demo-runner").hidden = true;
   el("show-demo").classList.toggle("demo-cta-pulse", pulse);
+  if (curatedHeroCaseId) selectCase(curatedHeroCaseId).catch((error) => writeRunway(error.message));
 }
 
 function artifactCopy(name, content) {
@@ -256,6 +257,14 @@ function setModelConnectionState(state, detail, tone = "disconnected") {
   lane.classList.add(tone);
   el("connection-state").textContent = state;
   el("connection-detail").textContent = detail;
+  const topbarState = el("topbar-model-state");
+  topbarState.textContent = tone === "connected"
+    ? "OpenAI live"
+    : tone === "connecting"
+      ? "Connecting..."
+      : state.includes("failed") || state.includes("rejected")
+        ? "Connection issue"
+        : "Connect OpenAI";
 }
 
 function sleep(ms) {
@@ -449,16 +458,15 @@ function renderCase(story) {
     el("authority-detail").textContent = "Truth is verified; connect OpenAI before the live decision journey continues.";
   }
   renderCaseWriterBadge(aiBrief);
-  const briefText = [
-    aiBrief.summary ? `Summary: ${aiBrief.summary}` : "No grounded case brief prepared yet.",
-    aiBrief.risk_explanation ? `Risk: ${aiBrief.risk_explanation}` : "",
-    aiBrief.recommended_disposition ? `Recommended disposition: ${aiBrief.recommended_disposition}` : "",
-    aiBrief.missing_information_request ? `Missing information request: ${aiBrief.missing_information_request}` : ""
-  ].filter(Boolean).join("\n\n");
-  el("case-brief").textContent = briefText;
+  el("case-brief").innerHTML = aiBrief.summary ? `
+    <strong class="brief-disposition">${escapeHtml(aiBrief.recommended_disposition || "Review")}</strong>
+    <p>${escapeHtml(aiBrief.risk_explanation || aiBrief.summary)}</p>
+    ${aiBrief.missing_information_request ? `<div class="brief-request"><span>Evidence request</span>${escapeHtml(aiBrief.missing_information_request)}</div>` : ""}
+  ` : "<p>No grounded case brief prepared yet.</p>";
   renderValidationReceipt(aiBrief);
   renderBriefArtifact(decisionCase, aiBrief);
   renderPrimaryFinding(decisionCase);
+  renderEvidenceGlance(decisionCase);
   renderNextAction(story, decisionCase);
   renderDecisionSnapshot(decisionCase);
   el("rules").innerHTML = renderRows(decisionCase.rule_results, (rule) => `<strong>${rule.rule_id} ${rule.status}</strong><br>${rule.summary}<br><span class="meta">Evidence: ${(rule.evidence_ids || []).join(", ") || "None"}</span>`);
@@ -469,12 +477,17 @@ function renderCase(story) {
   seedPackBack(story);
 }
 
-function renderPrimaryFinding(decisionCase) {
-  const result = decisionCase.rule_results.find((rule) => rule.status === "FAIL")
+function primaryRuleResult(decisionCase) {
+  return decisionCase.rule_results.find((rule) => rule.status === "FAIL")
     || decisionCase.rule_results.find((rule) => rule.status === "UNKNOWN")
-    || decisionCase.rule_results.find((rule) => rule.status === "WARNING");
+    || decisionCase.rule_results.find((rule) => rule.status === "WARNING")
+    || decisionCase.rule_results[0];
+}
+
+function renderPrimaryFinding(decisionCase) {
+  const result = primaryRuleResult(decisionCase);
   const status = el("primary-finding-status");
-  if (result) {
+  if (result && result.status !== "PASS") {
     el("primary-finding").textContent = result.rule_name || result.rule_id;
     el("primary-finding-detail").textContent = result.summary;
     status.textContent = result.status;
@@ -492,6 +505,24 @@ function renderPrimaryFinding(decisionCase) {
   el("primary-finding-detail").textContent = "Normalize the intake and run deterministic checks before asking a human to decide.";
   status.textContent = "Pending";
   status.className = "finding-status";
+}
+
+function renderEvidenceGlance(decisionCase) {
+  const rule = primaryRuleResult(decisionCase);
+  const evidenceById = new Map(decisionCase.evidence.map((item) => [item.evidence_id, item]));
+  const citedEvidence = (rule?.evidence_ids || []).map((evidenceId) => evidenceById.get(evidenceId)).filter(Boolean).slice(0, 3);
+  const container = el("evidence-glance");
+  if (!citedEvidence.length) {
+    container.innerHTML = "<p class=\"meta\">Supporting evidence will appear after truth review.</p>";
+    return;
+  }
+  container.innerHTML = citedEvidence.map((evidence) => `
+    <div class="evidence-glance-card ${evidence.verified ? "verified" : ""}">
+      <span>${escapeHtml(evidence.source_type.replaceAll("_", " "))}</span>
+      <strong>${escapeHtml(evidence.value)}</strong>
+      <small>${escapeHtml(evidence.source_name)} · ${escapeHtml(evidence.field)}</small>
+    </div>
+  `).join("");
 }
 
 function nextActionFor(story, decisionCase) {
@@ -693,7 +724,7 @@ el("show-demo").addEventListener("click", () => {
   demoRunnerPinned = true;
   el("demo-runner").hidden = false;
   el("show-demo").classList.remove("demo-cta-pulse");
-  el("start-live-demo").click();
+  el("demo-runner").scrollIntoView({ behavior: "smooth", block: "start" });
 });
 el("hide-demo").addEventListener("click", () => {
   demoRunnerPinned = false;
@@ -706,6 +737,8 @@ window.addEventListener("beforeunload", () => {
 
 async function runBankMismatchDemo({ credentials = null } = {}) {
   const usingLiveModel = Boolean(credentials?.api_key);
+  el("demo-runner").hidden = true;
+  revealDemoStage();
   el("start-live-demo").classList.remove("demo-cta-pulse");
   el("show-demo").classList.remove("demo-cta-pulse");
   setRunwayBusy(true, usingLiveModel ? "live" : "offline");
@@ -829,7 +862,7 @@ async function runBankMismatchDemo({ credentials = null } = {}) {
     writeRunway(lines);
     await selectCase(decisionCase.case_id);
     await loadCases();
-    switchTab("timeline");
+    switchTab("review");
     document.querySelector(".app-shell").scrollIntoView({ behavior: "smooth", block: "start" });
   } catch (error) {
     failActiveProofStep("Request failed");
@@ -845,7 +878,10 @@ async function runBankMismatchDemo({ credentials = null } = {}) {
 }
 
 el("start-live-demo").addEventListener("click", () => runBankMismatchDemo());
-el("run-offline-demo").addEventListener("click", () => runBankMismatchDemo());
+el("run-offline-demo").addEventListener("click", () => {
+  if (el("model-dialog").open) el("model-dialog").close();
+  runBankMismatchDemo();
+});
 
 el("compare-intakes").addEventListener("click", async () => {
   setRunwayBusy(true);
@@ -968,13 +1004,16 @@ function clearLiveModelApiKey(form = el("case-brief-form")) {
 }
 
 async function openLiveModelSetup() {
-  el("model-connection").scrollIntoView({ behavior: "smooth", block: "start" });
+  const dialog = el("model-dialog");
+  if (!dialog.open) dialog.showModal();
   requestAnimationFrame(() => el("case-brief-form").api_key.focus());
 }
 
 el("show-live-model").addEventListener("click", () => {
   openLiveModelSetup().catch((error) => writeRunway(error.message));
 });
+
+el("close-model-dialog").addEventListener("click", () => el("model-dialog").close());
 
 el("clear-model-key").addEventListener("click", () => clearLiveModelApiKey());
 
@@ -988,6 +1027,7 @@ el("case-brief-form").addEventListener("submit", async (event) => {
   el("case-brief-result").textContent = "Running the same decision workflow with a live case writer.";
   el("case-brief-result").classList.remove("error");
   try {
+    el("model-dialog").close();
     await runBankMismatchDemo({ credentials: { ...liveModelCredentials } });
   } finally {
     clearLiveModelApiKey(form);

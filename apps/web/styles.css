@@ -327,14 +327,41 @@ h3 {
   min-height: calc(100vh - 64px);
 }
 
+.model-dialog {
+  width: min(760px, calc(100vw - 32px));
+  max-height: calc(100vh - 40px);
+  padding: 0;
+  border: 1px solid #c7cec9;
+  border-radius: 8px;
+  background: #f8faf8;
+  box-shadow: 0 24px 70px rgba(23, 32, 29, 0.28);
+}
+
+.model-dialog::backdrop {
+  background: rgba(28, 36, 33, 0.48);
+}
+
 .model-connection {
   display: grid;
-  grid-template-columns: minmax(230px, 0.8fr) minmax(330px, 1.1fr) minmax(420px, 1.45fr);
-  align-items: center;
+  gap: 18px;
+  padding: 22px;
+}
+
+.model-dialog-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
   gap: 20px;
-  padding: 18px 22px;
-  border-bottom: 1px solid #bfc9c2;
-  background: #f8faf8;
+}
+
+.model-dialog-head h2 {
+  margin: 4px 0 5px;
+}
+
+.model-dialog-head p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
 }
 
 .connection-summary h2 {
@@ -419,8 +446,6 @@ h3 {
   grid-template-columns: minmax(220px, 1fr);
   align-items: end;
   gap: 9px 10px;
-  padding-left: 20px;
-  border-left: 1px solid var(--line);
 }
 
 .connection-actions {
@@ -577,7 +602,7 @@ h3 {
 }
 
 .demo-stage {
-  padding: 16px 22px;
+  padding: 14px 22px;
   border-bottom: 1px solid var(--line);
   background: #f0f5f2;
 }
@@ -725,6 +750,23 @@ button.is-busy::before {
   border-top: 1px solid var(--line);
 }
 
+.proof-log {
+  margin-top: 8px;
+  border-top: 1px solid var(--line);
+  padding-top: 8px;
+}
+
+.proof-log summary {
+  cursor: pointer;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 650;
+}
+
+.proof-log[open] summary {
+  margin-bottom: 8px;
+}
+
 .intake-grid {
   display: grid;
   grid-template-columns: minmax(250px, 340px) 1fr;
@@ -736,7 +778,7 @@ button.is-busy::before {
 .app-shell {
   display: grid;
   grid-template-columns: 270px minmax(0, 1fr);
-  min-height: calc(100vh - 123px);
+  min-height: calc(100vh - 64px);
   scroll-margin-top: 64px;
 }
 
@@ -999,26 +1041,23 @@ button.is-busy::before {
   color: var(--blue);
 }
 
-.overview-grid {
+.review-focus-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1.75fr) minmax(230px, 0.75fr);
-  gap: 34px;
+  grid-template-columns: minmax(0, 1.2fr) minmax(320px, 0.8fr);
+  gap: 28px;
 }
 
-.overview-main > section,
-.overview-side > section {
-  padding: 0 0 24px;
-  margin-bottom: 24px;
-  border-bottom: 1px solid var(--line-soft);
-}
-
-.overview-side > section:last-child {
-  margin-bottom: 0;
-  border-bottom: 0;
+.review-focus-grid > section {
+  min-width: 0;
 }
 
 .finding-panel {
   padding-top: 0 !important;
+}
+
+.case-brief-preview {
+  border-left: 1px solid var(--line-soft);
+  padding-left: 26px;
 }
 
 .finding-heading,
@@ -1060,11 +1099,82 @@ button.is-busy::before {
 }
 
 .brief {
-  max-height: 230px;
+  max-height: 210px;
   overflow: hidden;
-  white-space: pre-wrap;
   font-size: 13px;
   line-height: 1.55;
+}
+
+.brief p {
+  margin: 10px 0 12px;
+}
+
+.brief-disposition {
+  display: inline-block;
+  margin-top: 8px;
+  color: var(--red);
+  font-size: 18px;
+}
+
+.brief-request {
+  padding: 9px 10px;
+  border-left: 3px solid var(--amber);
+  background: var(--amber-soft);
+  font-size: 11px;
+}
+
+.brief-request span {
+  display: block;
+  margin-bottom: 2px;
+  color: var(--amber);
+  font-size: 9px;
+  font-weight: 750;
+  text-transform: uppercase;
+}
+
+.evidence-glance {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin: 16px 0 8px;
+}
+
+.evidence-glance-card {
+  min-width: 0;
+  padding: 11px 12px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: #fafbf9;
+}
+
+.evidence-glance-card.verified {
+  border-color: #9db5a7;
+  background: var(--green-soft);
+}
+
+.evidence-glance-card span,
+.evidence-glance-card small,
+.evidence-glance-card strong {
+  display: block;
+  overflow-wrap: anywhere;
+}
+
+.evidence-glance-card span {
+  color: var(--muted);
+  font-size: 9px;
+  font-weight: 750;
+  text-transform: uppercase;
+}
+
+.evidence-glance-card strong {
+  margin: 5px 0 3px;
+  font-size: 14px;
+}
+
+.evidence-glance-card small {
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.35;
 }
 
 .validation-receipt {
@@ -1149,7 +1259,6 @@ button.is-busy::before {
 }
 
 .readiness-details {
-  padding-top: 2px;
   color: #49564f;
   font-size: 12px;
 }
@@ -1226,7 +1335,7 @@ button.is-busy::before {
   font-weight: 700;
 }
 
-.folder-details,
+.audit-details,
 .artifact-generator,
 .raw-artifact {
   margin-top: 18px;
@@ -1234,10 +1343,54 @@ button.is-busy::before {
   border-top: 1px solid var(--line);
 }
 
-.folder-details > summary,
+.audit-details > summary,
 .artifact-generator > summary,
 .raw-artifact > summary {
   font-size: 12px;
+}
+
+.audit-details > summary {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  cursor: pointer;
+  color: #3f4b46;
+  font-weight: 700;
+  list-style: none;
+}
+
+.audit-details > summary::-webkit-details-marker {
+  display: none;
+}
+
+.audit-details > summary::after {
+  content: "+";
+  color: var(--green);
+  font-size: 18px;
+}
+
+.audit-details[open] > summary::after {
+  content: "-";
+}
+
+.audit-details > summary small {
+  margin-right: auto;
+  color: var(--muted);
+  font-weight: 400;
+}
+
+.audit-grid {
+  display: grid;
+  grid-template-columns: minmax(180px, 0.65fr) minmax(220px, 0.8fr) minmax(260px, 1fr);
+  gap: 26px;
+  margin-top: 20px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--line-soft);
+}
+
+.audit-details .validation-receipt {
+  margin-top: 20px;
 }
 
 .detail-grid,
@@ -1347,7 +1500,7 @@ pre {
 
 #runway-result {
   max-height: 150px;
-  margin-bottom: 0;
+  margin: 0;
 }
 
 #packet-preview {
@@ -1480,18 +1633,8 @@ pre {
 }
 
 @media (max-width: 1040px) {
-  .model-connection {
-    grid-template-columns: minmax(220px, 0.7fr) minmax(0, 1.3fr);
-  }
-
-  .model-connection-form {
-    grid-column: 1 / -1;
-    padding-left: 0;
-    border-left: 0;
-  }
-
-  .overview-grid {
-    grid-template-columns: minmax(0, 1.4fr) minmax(230px, 0.8fr);
+  .review-focus-grid {
+    grid-template-columns: minmax(0, 1fr) minmax(280px, 0.8fr);
   }
 
   .runway-steps {
@@ -1515,19 +1658,6 @@ pre {
     gap: 12px;
   }
 
-  .model-connection {
-    grid-template-columns: 1fr;
-  }
-
-  .model-connection-form {
-    grid-column: auto;
-    grid-template-columns: 1fr 1fr;
-  }
-
-  .connection-actions {
-    grid-column: 1 / -1;
-  }
-
   .demo-prompt {
     grid-template-columns: 1fr;
   }
@@ -1537,10 +1667,11 @@ pre {
   }
 
   .app-shell {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .inbox {
+    min-width: 0;
     border-right: 0;
     border-bottom: 1px solid var(--line);
   }
@@ -1549,11 +1680,19 @@ pre {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .overview-grid,
+  .review-focus-grid,
+  .audit-grid,
   .grid.two,
   .compact-form,
   .intake-grid {
     grid-template-columns: 1fr;
+  }
+
+  .case-brief-preview {
+    border-top: 1px solid var(--line-soft);
+    border-left: 0;
+    padding-top: 22px;
+    padding-left: 0;
   }
 
   .status-stack {
@@ -1576,7 +1715,6 @@ pre {
   }
 
   .topbar,
-  .model-connection,
   .demo-runner,
   .demo-stage {
     padding-left: 14px;
@@ -1598,7 +1736,8 @@ pre {
   }
 
   .lane-boundaries,
-  .model-connection-form {
+  .model-connection-form,
+  .evidence-glance {
     grid-template-columns: 1fr;
   }
 
@@ -1650,7 +1789,18 @@ pre {
     display: block;
   }
 
-  .case-list,
+  .case-list {
+    display: flex;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    scroll-snap-type: x proximity;
+  }
+
+  .case-card {
+    min-width: 230px;
+    scroll-snap-align: start;
+  }
+
   .runway-steps {
     grid-template-columns: 1fr;
   }
@@ -1658,6 +1808,19 @@ pre {
   .artifact-dialog {
     width: calc(100vw - 16px);
     max-height: calc(100vh - 16px);
+  }
+
+  .model-dialog {
+    width: calc(100vw - 16px);
+    max-height: calc(100vh - 16px);
+  }
+
+  .model-connection {
+    padding: 18px 16px;
+  }
+
+  .audit-details > summary small {
+    display: none;
   }
 
   .artifact-dialog-head,

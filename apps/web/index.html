@@ -41,9 +41,9 @@
       </div>
       <div class="topbar-context">
         <span class="workspace-name">Finance Approval Workspace</span>
-        <button id="show-live-model" class="topbar-model-button" aria-label="Use Live Model">
+        <button id="show-live-model" class="topbar-model-button" aria-label="Open model connection">
           <span>Case writer</span>
-          <strong>Model Connection</strong>
+          <strong id="topbar-model-state">Connect OpenAI</strong>
         </button>
         <button id="show-demo" class="topbar-demo-button demo-cta-pulse" aria-label="Run Demo">
           <span>Live proof</span>
@@ -54,43 +54,6 @@
     </header>
 
     <main class="workspace">
-      <section id="model-connection" class="model-connection" aria-labelledby="model-connection-title">
-        <div class="connection-summary">
-          <span class="eyebrow">Replaceable model layer</span>
-          <h2 id="model-connection-title">Connect OpenAI to complete the live workflow.</h2>
-          <p>The decision engine is KLEAR. OpenAI is connected only for the grounded case-writing lane.</p>
-        </div>
-        <div class="lane-boundaries" aria-label="Decision lane boundaries">
-          <div class="lane-state">
-            <span>Truth Layer</span>
-            <strong>Deterministic</strong>
-            <small>No model call</small>
-          </div>
-          <div class="lane-state case-writer-lane disconnected">
-            <span>Case Writer</span>
-            <strong id="connection-state">OpenAI not connected</strong>
-            <small id="connection-detail">Live case writer unavailable</small>
-          </div>
-          <div class="lane-state human-lane">
-            <span>Human Decision</span>
-            <strong>Human only</strong>
-            <small>Authoritative</small>
-          </div>
-        </div>
-        <form id="case-brief-form" class="model-connection-form">
-          <label>OpenAI API Key
-            <input name="api_key" type="password" autocomplete="off" placeholder="Request-scoped API key" aria-describedby="model-security-note" required>
-          </label>
-          <div class="connection-actions">
-            <button type="submit" class="primary-action">Connect &amp; Run Live</button>
-            <button type="button" id="run-offline-demo">Run Offline Demo</button>
-            <button type="button" id="clear-model-key" class="quiet-button">Clear Key</button>
-          </div>
-          <p id="model-security-note" class="model-security-note">Sent only for the case-writer request, cleared after every attempt, and never stored in case data, history, or handoff.</p>
-          <p id="case-brief-result" class="connection-result error" aria-live="polite">Offline can verify truth, but cannot complete the live decision journey.</p>
-        </form>
-      </section>
-
       <section id="demo-runner" class="demo-runner" aria-label="Guided demo">
         <div class="demo-prompt">
           <span class="eyebrow">Guided review</span>
@@ -130,7 +93,10 @@
           <span class="step">Human decision recorded</span>
           <span class="step">Handoff acknowledged, evidence pending</span>
         </div>
-        <pre id="runway-result">Run offline to verify truth, or connect OpenAI to complete the live decision lifecycle.</pre>
+        <details class="proof-log">
+          <summary>Technical run log</summary>
+          <pre id="runway-result">Run offline to verify truth, or connect OpenAI to complete the live decision lifecycle.</pre>
+        </details>
 
         <details class="manual-demo">
           <summary>Manual scenario controls</summary>
@@ -214,99 +180,81 @@
                   <strong id="authority-title">OpenAI has not prepared this case.</strong>
                   <span id="authority-detail">Truth is verified; only an explicit human action can decide it.</span>
                 </div>
-                <div class="overview-grid">
-                  <div class="overview-main">
-                    <section class="finding-panel">
-                      <div class="finding-heading">
-                        <span class="section-label">What happened</span>
-                        <span id="primary-finding-status" class="finding-status">Pending</span>
-                      </div>
-                      <h3 id="primary-finding">Review pending</h3>
-                      <p id="primary-finding-detail"></p>
-                      <button id="inspect-finding" class="text-button">Inspect supporting evidence</button>
-                    </section>
+                <div class="review-focus-grid">
+                  <section class="finding-panel">
+                    <div class="finding-heading">
+                      <span class="section-label">What needs attention</span>
+                      <span id="primary-finding-status" class="finding-status">Pending</span>
+                    </div>
+                    <h3 id="primary-finding">Review pending</h3>
+                    <p id="primary-finding-detail"></p>
+                    <div id="evidence-glance" class="evidence-glance"></div>
+                    <button id="inspect-finding" class="text-button">Inspect all evidence and rules</button>
+                  </section>
 
-                    <section class="case-brief-preview">
-                      <div class="document-section-head">
-                        <div>
-                          <span class="section-label">Prepared context</span>
-                          <h3>Grounded case brief</h3>
-                        </div>
-                        <span id="case-writer-badge" class="pill">NO BRIEF</span>
+                  <section class="case-brief-preview">
+                    <div class="document-section-head">
+                      <div>
+                        <span class="section-label">Prepared recommendation</span>
+                        <h3>Grounded case brief</h3>
                       </div>
-                      <div id="case-brief" class="brief"></div>
-                      <button id="open-full-brief" class="text-button">Open AI brief and citations</button>
-                      <section id="case-writer-validation" class="validation-receipt" hidden>
-                        <div class="validation-receipt-head">
-                          <div>
-                            <span class="section-label">Validation receipt</span>
-                            <strong>Checked before display</strong>
-                          </div>
-                          <span id="validation-receipt-status" class="pill ready">Passed</span>
-                        </div>
-                        <p id="validation-receipt-meta" class="meta"></p>
-                        <div id="validation-receipt-checks" class="validation-checks"></div>
-                      </section>
-                    </section>
-                  </div>
+                      <span id="case-writer-badge" class="pill">NO BRIEF</span>
+                    </div>
+                    <div id="case-brief" class="brief"></div>
+                    <button id="open-full-brief" class="text-button">Open brief and citations</button>
+                  </section>
+                </div>
 
-                  <aside class="overview-side">
+                <details class="audit-details">
+                  <summary>
+                    <span>Audit details</span>
+                    <small>Readiness, validation, files, facts, and rule results</small>
+                  </summary>
+                  <div class="audit-grid">
                     <section class="decision-snapshot-panel">
                       <span class="section-label">Latest human event</span>
                       <div id="decision-snapshot"></div>
                     </section>
 
+                    <section class="readiness-details">
+                      <span class="section-label">Case readiness</span>
+                      <div id="readiness"></div>
+                    </section>
+
                     <section class="artifacts-panel">
                       <div class="section-head">
-                        <span class="section-label">Files</span>
+                        <span class="section-label">Portable files</span>
                         <span class="artifact-count">3 files</span>
                       </div>
                       <button class="artifact-file" data-artifact="brief">
-                        <span>
-                          <strong id="brief-filename">case-brief.md</strong>
-                          <small id="brief-file-meta">Prepared case context</small>
-                        </span>
+                        <span><strong id="brief-filename">case-brief.md</strong><small id="brief-file-meta">Prepared case context</small></span>
                         <span class="file-action">Open</span>
                       </button>
                       <button class="artifact-file" data-artifact="handoff">
-                        <span>
-                          <strong id="handoff-filename">decision-handoff.md</strong>
-                          <small id="handoff-file-meta">Latest state transfer</small>
-                        </span>
+                        <span><strong id="handoff-filename">decision-handoff.md</strong><small id="handoff-file-meta">Latest state transfer</small></span>
                         <span class="file-action">Open</span>
                       </button>
                       <button class="artifact-file" data-artifact="packback">
-                        <span>
-                          <strong>pack-back.json</strong>
-                          <small id="packback-file-meta">Return an update to this case</small>
-                        </span>
+                        <span><strong>pack-back.json</strong><small id="packback-file-meta">Return an update to this case</small></span>
                         <span class="file-action">Import</span>
                       </button>
                     </section>
-
-                    <details class="readiness-details">
-                      <summary>Readiness details</summary>
-                      <div id="readiness"></div>
-                    </details>
-                  </aside>
-                </div>
-
-                <details class="folder-details">
-                  <summary>Case facts and all rule results</summary>
-                  <div class="grid two detail-grid">
-                    <section>
-                      <h3>Normalized Facts</h3>
-                      <dl id="facts"></dl>
-                    </section>
-                    <section>
-                      <h3>Rule Results</h3>
-                      <div id="rules"></div>
-                    </section>
                   </div>
-                  <section>
-                    <h3>Unknowns</h3>
-                    <div id="unknowns"></div>
+
+                  <section id="case-writer-validation" class="validation-receipt" hidden>
+                    <div class="validation-receipt-head">
+                      <div><span class="section-label">Validation receipt</span><strong>Checked before display</strong></div>
+                      <span id="validation-receipt-status" class="pill ready">Passed</span>
+                    </div>
+                    <p id="validation-receipt-meta" class="meta"></p>
+                    <div id="validation-receipt-checks" class="validation-checks"></div>
                   </section>
+
+                  <div class="grid two detail-grid">
+                    <section><h3>Normalized facts</h3><dl id="facts"></dl></section>
+                    <section><h3>Rule results</h3><div id="rules"></div></section>
+                  </div>
+                  <section><h3>Unknowns</h3><div id="unknowns"></div></section>
                 </details>
               </section>
 
@@ -367,6 +315,36 @@
         </section>
       </div>
     </main>
+
+    <dialog id="model-dialog" class="model-dialog">
+      <div id="model-connection" class="model-connection" aria-labelledby="model-connection-title">
+        <header class="model-dialog-head">
+          <div>
+            <span class="eyebrow">Replaceable model layer</span>
+            <h2 id="model-connection-title">Connect OpenAI for the grounded case writer</h2>
+            <p>The truth layer remains deterministic. Human decision authority remains separate.</p>
+          </div>
+          <button id="close-model-dialog" class="quiet-button" aria-label="Close model connection">Close</button>
+        </header>
+        <div class="lane-boundaries" aria-label="Decision lane boundaries">
+          <div class="lane-state"><span>Truth Layer</span><strong>Deterministic</strong><small>No model call</small></div>
+          <div class="lane-state case-writer-lane disconnected"><span>Case Writer</span><strong id="connection-state">OpenAI not connected</strong><small id="connection-detail">Live case writer unavailable</small></div>
+          <div class="lane-state human-lane"><span>Human Decision</span><strong>Human only</strong><small>Authoritative</small></div>
+        </div>
+        <form id="case-brief-form" class="model-connection-form">
+          <label>OpenAI API Key
+            <input name="api_key" type="password" autocomplete="off" placeholder="Request-scoped API key" aria-describedby="model-security-note" required>
+          </label>
+          <div class="connection-actions">
+            <button type="submit" class="primary-action">Connect &amp; Run Live</button>
+            <button type="button" id="run-offline-demo">Run Offline Demo</button>
+            <button type="button" id="clear-model-key" class="quiet-button">Clear Key</button>
+          </div>
+          <p id="model-security-note" class="model-security-note">Sent only for the case-writer request, cleared after every attempt, and never stored in case data, history, or handoff.</p>
+          <p id="case-brief-result" class="connection-result error" aria-live="polite">Offline can verify truth, but cannot complete the live decision journey.</p>
+        </form>
+      </div>
+    </dialog>
 
     <dialog id="artifact-dialog" class="artifact-dialog">
       <div class="artifact-dialog-shell">

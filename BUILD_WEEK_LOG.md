@@ -56,3 +56,5 @@
 - Added an MIT license for the public submission repository.
 - Added config-owned GPT-5.6-first compatibility negotiation so request-scoped API keys can use the first accessible configured model without exposing a model selector.
 - Sanitized OpenAI provider errors before they reach the reviewer UI; project identifiers and raw upstream response bodies are never displayed or persisted.
+- Added reviewer-first progressive disclosure before recording: model setup now opens in a focused dialog, the live proof log is collapsed by default, and the Overview leads with the blocking finding, cited evidence comparison, grounded disposition, and next human action.
+- Consolidated readiness, model validation, portable files, normalized facts, unknowns, and full rule results under one reproducible `Audit details` layer without changing DecisionCase state or lane boundaries.
