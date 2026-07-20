@@ -54,3 +54,5 @@
 - Set the bundled case-writer default to the config-owned `gpt-5.6` alias while preserving `KLEAR_MODEL_ID` overrides for compatible Responses API models.
 - Added a persisted case-writer validation receipt plus one validation-feedback retry; a second rejected model output produces a clearly labeled deterministic fallback and stops the live UI journey.
 - Added an MIT license for the public submission repository.
+- Added config-owned GPT-5.6-first compatibility negotiation so request-scoped API keys can use the first accessible configured model without exposing a model selector.
+- Sanitized OpenAI provider errors before they reach the reviewer UI; project identifiers and raw upstream response bodies are never displayed or persisted.

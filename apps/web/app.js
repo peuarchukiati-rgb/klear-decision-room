@@ -229,9 +229,10 @@ function activateProofStep(index, label, activityText) {
   setRunwayActivity(activityText);
 }
 
-function failActiveProofStep() {
+function failActiveProofStep(label = "") {
   const activeStep = document.querySelector("#runway-steps .step.active");
   if (activeStep) {
+    if (label) activeStep.textContent = label;
     activeStep.classList.remove("active");
     activeStep.classList.add("blocked");
   }
@@ -575,7 +576,8 @@ function renderValidationReceipt(aiBrief) {
     : receipt.model_called
       ? "OpenAI output rejected; deterministic fallback accepted"
       : "Deterministic fallback validated";
-  el("validation-receipt-meta").textContent = `${source} · ${receipt.attempt_count} model attempt${receipt.attempt_count === 1 ? "" : "s"} · ${receipt.rejected_attempt_count} rejected`;
+  const compatibility = receipt.compatibility_model_used ? " · compatible model selected automatically" : "";
+  el("validation-receipt-meta").textContent = `${source} · ${receipt.attempt_count} API request${receipt.attempt_count === 1 ? "" : "s"} · ${receipt.rejected_attempt_count} rejected${compatibility}`;
   el("validation-receipt-checks").innerHTML = receipt.checks.map((check) => `
     <div class="validation-check">
       <span>${escapeHtml(check.check_id.replaceAll("_", " "))}</span>
@@ -768,7 +770,14 @@ async function runBankMismatchDemo({ credentials = null } = {}) {
     markProofStep(2);
     if (brief.case_writer.model_called && brief.case_writer.model_output_accepted) {
       lines.push("Grounded case brief prepared by OpenAI.");
-      setModelConnectionState("OpenAI live", "Connected for this request", "connected");
+      if (brief.case_writer.compatibility_model_used) {
+        lines.push("The default model was unavailable to this API project, so KLEAR selected a compatible OpenAI model automatically.");
+      }
+      setModelConnectionState(
+        "OpenAI live",
+        brief.case_writer.compatibility_model_used ? "Compatible model selected automatically" : "Connected for this request",
+        "connected"
+      );
       el("case-brief-result").textContent = "OPENAI LIVE generated the grounded brief.";
       el("case-brief-result").classList.remove("error");
     } else if (brief.case_writer.model_called) {
@@ -823,7 +832,7 @@ async function runBankMismatchDemo({ credentials = null } = {}) {
     switchTab("timeline");
     document.querySelector(".app-shell").scrollIntoView({ behavior: "smooth", block: "start" });
   } catch (error) {
-    failActiveProofStep();
+    failActiveProofStep("Request failed");
     setRunwayActivity(`Stopped: ${error.message}`, "error");
     lines.push(`Demo stopped: ${error.message}`);
     writeRunway(lines);

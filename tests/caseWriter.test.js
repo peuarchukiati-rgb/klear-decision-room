@@ -155,6 +155,83 @@ test("case writer retries one rejected model output with validation feedback", a
   assertHumanDecisionUnchanged(decisionCase, written.case);
 });
 
+test("case writer selects a compatible model when the default is unavailable", async () => {
+  const { store, decisionCase } = await reviewedCase("SCN-BANK-MISMATCH");
+  const requests = [];
+  const fetchImpl = async (_url, options) => {
+    const request = JSON.parse(options.body);
+    requests.push(request);
+    if (request.model === "unavailable-primary") {
+      return {
+        ok: false,
+        status: 403,
+        text: async () => JSON.stringify({
+          error: {
+            message: "Project proj_private must not be exposed",
+            code: "model_not_found"
+          }
+        })
+      };
+    }
+    return {
+      ok: true,
+      json: async () => ({ output_text: JSON.stringify(validOutputFor(decisionCase)) })
+    };
+  };
+
+  const written = await writeGroundedCaseBrief(store, decisionCase.case_id, {
+    env: {
+      OPENAI_API_KEY: "compatibility-test-key",
+      KLEAR_MODEL_ID: "unavailable-primary",
+      KLEAR_MODEL_FALLBACK_IDS: "compatible-model"
+    },
+    fetchImpl,
+    allowFallback: false
+  });
+
+  assert.deepEqual(requests.map((request) => request.model), ["unavailable-primary", "compatible-model"]);
+  assert.equal(written.writer.mode, "model");
+  assert.equal(written.writer.compatibility_model_used, true);
+  assert.equal(written.case.ai_case_brief.model_id, "compatible-model");
+  assert.equal(written.writer.validation_receipt.model_access_failure_count, 1);
+  assert.equal(JSON.stringify(written.case).includes("proj_private"), false);
+  assertHumanDecisionUnchanged(decisionCase, written.case);
+});
+
+test("case writer reports a safe error when no configured model is available", async () => {
+  const { store, decisionCase } = await reviewedCase("SCN-BANK-MISMATCH");
+  const fetchImpl = async () => ({
+    ok: false,
+    status: 403,
+    text: async () => JSON.stringify({
+      error: {
+        message: "Project proj_private must not be exposed",
+        code: "model_not_found"
+      }
+    })
+  });
+
+  await assert.rejects(
+    () => writeGroundedCaseBrief(store, decisionCase.case_id, {
+      env: {
+        OPENAI_API_KEY: "unavailable-test-key",
+        KLEAR_MODEL_ID: "unavailable-primary",
+        KLEAR_MODEL_FALLBACK_IDS: "unavailable-secondary"
+      },
+      fetchImpl,
+      allowFallback: false
+    }),
+    (error) => {
+      assert.match(error.message, /No configured OpenAI model is available/);
+      assert.equal(error.message.includes("proj_private"), false);
+      return true;
+    }
+  );
+
+  const persisted = await store.getCase(decisionCase.case_id);
+  assert.equal(persisted.version, decisionCase.version);
+});
+
 test("case writer records deterministic fallback after two rejected model outputs", async () => {
   const { store, decisionCase } = await reviewedCase("SCN-BANK-MISMATCH");
   const fetchImpl = async () => {

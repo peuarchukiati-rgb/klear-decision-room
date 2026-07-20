@@ -83,6 +83,7 @@ test("static reviewer UI exposes Phase 4 operational panels", async () => {
   assert.ok(js.includes("OpenAI is preparing a grounded brief from verified facts, evidence, and rule results..."));
   assert.ok(js.includes("renderValidationReceipt"));
   assert.ok(js.includes("OpenAI output rejected; deterministic fallback accepted"));
+  assert.ok(js.includes("Compatible model selected automatically"));
   assert.ok(css.includes(".runway-activity.active"));
   assert.ok(css.includes(".step.active"));
   assert.ok(css.includes("button.is-busy"));

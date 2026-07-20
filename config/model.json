@@ -1,3 +1,8 @@
 {
-  "model_id": "gpt-5.6"
+  "model_id": "gpt-5.6",
+  "fallback_model_ids": [
+    "gpt-5.6-terra",
+    "gpt-5.6-luna",
+    "gpt-4o-mini"
+  ]
 }

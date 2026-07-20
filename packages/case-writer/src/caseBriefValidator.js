@@ -101,6 +101,8 @@ export function createCaseBriefValidationReceipt(
     attempt_count = 0,
     rejected_attempts = [],
     fallback_used = false,
+    compatibility_model_used = false,
+    model_access_failures = [],
     validated_at = new Date().toISOString()
   } = {}
 ) {
@@ -120,6 +122,8 @@ export function createCaseBriefValidationReceipt(
     attempt_count,
     rejected_attempt_count: rejected_attempts.length,
     fallback_used,
+    compatibility_model_used,
+    model_access_failure_count: model_access_failures.length,
     checks: [
       {
         check_id: "OUTPUT_SHAPE",
@@ -152,7 +156,8 @@ export function createCaseBriefValidationReceipt(
     rejected_attempts: rejected_attempts.map((message, index) => ({
       attempt: index + 1,
       reason: message
-    }))
+    })),
+    model_access_failures
   };
 }
 

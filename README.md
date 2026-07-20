@@ -176,7 +176,7 @@ https://dashboard.render.com/blueprint/new?repo=https://github.com/peuarchukiati
 
 The hosted start command seeds the four-case rehearsal queue before starting the API. Render free services use an ephemeral filesystem, so the public demo intentionally resets to that known queue after a restart, redeploy, or idle spin-down. This is a judge-preview boundary, not production persistence.
 
-The bundled model selection is `gpt-5.6` in `config/model.json`. A deployment may use `KLEAR_MODEL_ID` to select another Responses API model that supports the required structured-output schema, without changing application source or exposing model selection in the reviewer UI. Do not configure a shared OpenAI key on the public host; judges provide only their own request-scoped key through the reviewer console.
+The bundled model selection starts with `gpt-5.6` in `config/model.json`. If the supplied API project cannot access it, KLEAR tries the configured compatibility order (`gpt-5.6-terra`, `gpt-5.6-luna`, then `gpt-4o-mini`) and records whether a compatibility model was selected. A deployment may replace the primary model with `KLEAR_MODEL_ID` and control the ordered fallback list with `KLEAR_MODEL_FALLBACK_IDS`, without changing application source or exposing model selection in the reviewer UI. Do not configure a shared OpenAI key on the public host; judges provide only their own request-scoped key through the reviewer console.
 
 ## Live Model Demo
 
@@ -203,7 +203,7 @@ The tests cover deterministic rules, evidence citation integrity, model-output v
 
 Codex was used throughout Build Week to inspect the prior repositories, implement and test the DecisionCase architecture, build the deterministic truth and human-decision lanes, and iterate on the reviewer experience. GPT-5.6 was used for architecture reasoning, implementation review, and the grounded case-writer path demonstrated in the product.
 
-The product does not hardcode that model into runtime source. The bundled default is `gpt-5.6` in `config/model.json`, with an optional `KLEAR_MODEL_ID` environment override for another compatible Responses API model; the same grounded-output validator and human-decision boundary apply regardless of model size.
+The product does not hardcode that model into runtime source. The bundled primary is `gpt-5.6` in `config/model.json`, with config-owned compatibility candidates and optional `KLEAR_MODEL_ID` / `KLEAR_MODEL_FALLBACK_IDS` environment overrides; the same grounded-output validator and human-decision boundary apply to every selected model.
 
 ## Model Configuration
 
@@ -214,6 +214,8 @@ The case writer calls a model only when an `OPENAI_API_KEY` is supplied and mode
 For the reviewer console, the API key is supplied per request through the masked field and discarded after the request. The model ID remains bundled/deployment configuration and is never requested from the reviewer.
 
 Model identifiers must come from environment or config and must not be hardcoded in source.
+
+Provider error bodies are not returned to the reviewer UI. Model-access failures trigger the next configured candidate; authentication, rate-limit, and exhausted-candidate failures return short sanitized messages without project metadata.
 
 ## Future Domains
 

@@ -2,6 +2,29 @@ import { RESPONSE_FORMAT } from "./caseBriefSchema.js";
 
 const RESPONSES_URL = "https://api.openai.com/v1/responses";
 
+export class OpenAiCaseWriterError extends Error {
+  constructor(message, { status = null, code = "", model_id = "" } = {}) {
+    super(message);
+    this.name = "OpenAiCaseWriterError";
+    this.status = status;
+    this.code = code;
+    this.model_id = model_id;
+  }
+}
+
+function publicErrorMessage(status, code) {
+  if (code === "model_not_found") {
+    return "The configured OpenAI model is not available to this API project.";
+  }
+  if (status === 401) {
+    return "The OpenAI API key was rejected.";
+  }
+  if (status === 429) {
+    return "The OpenAI API request reached a rate or quota limit.";
+  }
+  return `The OpenAI case writer request failed (${status}).`;
+}
+
 function extractOutputText(response) {
   if (typeof response.output_text === "string") {
     return response.output_text;
@@ -42,8 +65,18 @@ export async function callOpenAiCaseWriter({ model_id, api_key, messages, fetchI
   });
 
   if (!response.ok) {
-    const detail = await response.text();
-    throw new Error(`OpenAI case writer request failed (${response.status}): ${detail}`);
+    let code = "";
+    try {
+      const detail = JSON.parse(await response.text());
+      code = detail?.error?.code || "";
+    } catch {
+      // Provider response bodies are intentionally not exposed to the reviewer UI.
+    }
+    throw new OpenAiCaseWriterError(publicErrorMessage(response.status, code), {
+      status: response.status,
+      code,
+      model_id
+    });
   }
 
   const data = await response.json();

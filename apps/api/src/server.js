@@ -254,6 +254,7 @@ export async function handleRequest(req, res, store = new CaseStore(), {
           mode: result.writer.mode,
           model_called: result.writer.model_called,
           model_output_accepted: result.writer.model_output_accepted,
+          compatibility_model_used: result.writer.compatibility_model_used,
           model_id: result.case.ai_case_brief.model_id || null,
           validation_receipt: result.writer.validation_receipt
         }
