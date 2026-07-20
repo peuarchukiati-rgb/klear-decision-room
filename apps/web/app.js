@@ -437,6 +437,9 @@ function renderCase(story) {
   if (aiBrief.writer_mode === "model") {
     el("authority-title").textContent = "OpenAI prepared this case.";
     el("authority-detail").textContent = "Only an explicit human action can decide it.";
+  } else if (aiBrief.writer_mode === "fallback_after_rejection") {
+    el("authority-title").textContent = "OpenAI output was rejected by validation.";
+    el("authority-detail").textContent = "A deterministic fallback preserved the case; the model still owns no decision authority.";
   } else if (aiBrief.writer_mode === "fallback") {
     el("authority-title").textContent = "A deterministic fallback preview prepared this case.";
     el("authority-detail").textContent = "No model was called; only an explicit human action can decide it.";
@@ -452,6 +455,7 @@ function renderCase(story) {
     aiBrief.missing_information_request ? `Missing information request: ${aiBrief.missing_information_request}` : ""
   ].filter(Boolean).join("\n\n");
   el("case-brief").textContent = briefText;
+  renderValidationReceipt(aiBrief);
   renderBriefArtifact(decisionCase, aiBrief);
   renderPrimaryFinding(decisionCase);
   renderNextAction(story, decisionCase);
@@ -532,20 +536,52 @@ function renderDecisionSnapshot(decisionCase) {
 }
 
 function renderBriefArtifact(decisionCase, aiBrief) {
-  const mode = aiBrief.writer_mode === "model" ? "OpenAI live model" : aiBrief.writer_mode === "fallback" ? "Deterministic fallback" : "Not prepared";
+  const mode = aiBrief.writer_mode === "model"
+    ? "OpenAI live model"
+    : aiBrief.writer_mode === "fallback_after_rejection"
+      ? "Validated fallback after model rejection"
+      : aiBrief.writer_mode === "fallback"
+        ? "Deterministic fallback"
+        : "Not prepared";
   const citations = (aiBrief.citations || []).map((citation) => `- ${citation.claim}\n  - Evidence: ${(citation.evidence_ids || []).join(", ") || "None"}\n  - Rules: ${(citation.rule_ids || []).join(", ") || "None"}`).join("\n");
-  currentBriefMarkdown = `---\nprotocol: klear-case-brief/v1\ncase_id: ${decisionCase.case_id}\nsource_version: ${decisionCase.version}\nwriter_mode: ${aiBrief.writer_mode || "none"}\n---\n\n# Grounded Case Brief\n\n## Summary\n${aiBrief.summary || "No brief prepared."}\n\n## Risk\n${aiBrief.risk_explanation || "Not established."}\n\n## Recommended Disposition\n${aiBrief.recommended_disposition || "No recommendation."}\n\n## Missing Information\n${aiBrief.missing_information_request || "None recorded."}\n\n## Citations\n${citations || "- None recorded."}\n`;
+  const receipt = aiBrief.validation_receipt;
+  const validationChecks = (receipt?.checks || []).map((check) => `- ${check.check_id}: ${check.status} - ${check.detail}`).join("\n");
+  currentBriefMarkdown = `---\nprotocol: klear-case-brief/v1\ncase_id: ${decisionCase.case_id}\nsource_version: ${decisionCase.version}\nwriter_mode: ${aiBrief.writer_mode || "none"}\n---\n\n# Grounded Case Brief\n\n## Summary\n${aiBrief.summary || "No brief prepared."}\n\n## Risk\n${aiBrief.risk_explanation || "Not established."}\n\n## Recommended Disposition\n${aiBrief.recommended_disposition || "No recommendation."}\n\n## Missing Information\n${aiBrief.missing_information_request || "None recorded."}\n\n## Citations\n${citations || "- None recorded."}\n\n## Validation Receipt\n${validationChecks || "- No validation receipt recorded."}\n`;
   el("brief-filename").textContent = `${decisionCase.case_id}-case-brief.md`;
   el("brief-file-meta").textContent = mode;
   el("brief-artifact-state").textContent = mode;
-  el("brief-artifact-state").className = `pill ${aiBrief.writer_mode ? "ready" : ""}`;
+  el("brief-artifact-state").className = `pill ${aiBrief.writer_mode === "model" ? "ready" : aiBrief.writer_mode ? "pending" : ""}`;
   el("case-brief-document").innerHTML = `
     <h3>Summary</h3><p>${escapeHtml(aiBrief.summary || "No grounded case brief has been prepared yet.")}</p>
     <h3>Risk</h3><p>${escapeHtml(aiBrief.risk_explanation || "Not established.")}</p>
     <h3>Recommended disposition</h3><p>${escapeHtml(aiBrief.recommended_disposition || "No recommendation.")}</p>
     <h3>Missing information</h3><p>${escapeHtml(aiBrief.missing_information_request || "None recorded.")}</p>
     <h3>Citations</h3>${renderRows(aiBrief.citations || [], (citation) => `${escapeHtml(citation.claim)}<br><span class="meta">Evidence: ${escapeHtml((citation.evidence_ids || []).join(", ") || "None")} · Rules: ${escapeHtml((citation.rule_ids || []).join(", ") || "None")}</span>`)}
+    <h3>Validation receipt</h3>${renderRows(receipt?.checks || [], (check) => `<strong>${escapeHtml(check.check_id)} · ${escapeHtml(check.status)}</strong><br><span class="meta">${escapeHtml(check.detail)}</span>`)}
   `;
+}
+
+function renderValidationReceipt(aiBrief) {
+  const receipt = aiBrief.validation_receipt;
+  const container = el("case-writer-validation");
+  container.hidden = !receipt;
+  if (!receipt) return;
+
+  const status = el("validation-receipt-status");
+  status.textContent = receipt.fallback_used ? "Fallback used" : "Passed";
+  status.className = `pill ${receipt.fallback_used ? "pending" : "ready"}`;
+  const source = receipt.model_output_accepted
+    ? "OpenAI output accepted"
+    : receipt.model_called
+      ? "OpenAI output rejected; deterministic fallback accepted"
+      : "Deterministic fallback validated";
+  el("validation-receipt-meta").textContent = `${source} · ${receipt.attempt_count} model attempt${receipt.attempt_count === 1 ? "" : "s"} · ${receipt.rejected_attempt_count} rejected`;
+  el("validation-receipt-checks").innerHTML = receipt.checks.map((check) => `
+    <div class="validation-check">
+      <span>${escapeHtml(check.check_id.replaceAll("_", " "))}</span>
+      <strong>${escapeHtml(check.status)}</strong>
+    </div>
+  `).join("");
 }
 
 function renderCaseWriterBadge(aiBrief = {}) {
@@ -553,6 +589,9 @@ function renderCaseWriterBadge(aiBrief = {}) {
   if (aiBrief.writer_mode === "model") {
     badge.textContent = "OPENAI LIVE";
     badge.className = "pill ready";
+  } else if (aiBrief.writer_mode === "fallback_after_rejection") {
+    badge.textContent = "VALIDATED FALLBACK";
+    badge.className = "pill pending";
   } else {
     badge.textContent = aiBrief.writer_mode === "fallback" ? "OFFLINE BRIEF" : "NOT PREPARED";
     badge.className = "pill";
@@ -727,11 +766,24 @@ async function runBankMismatchDemo({ credentials = null } = {}) {
     const brief = await prepareLiveBrief(decisionCase.case_id, credentials);
     setProofStepLabel(2, PROOF_STEP_LABELS[2]);
     markProofStep(2);
-    if (brief.case_writer.model_called) {
+    if (brief.case_writer.model_called && brief.case_writer.model_output_accepted) {
       lines.push("Grounded case brief prepared by OpenAI.");
       setModelConnectionState("OpenAI live", "Connected for this request", "connected");
       el("case-brief-result").textContent = "OPENAI LIVE generated the grounded brief.";
       el("case-brief-result").classList.remove("error");
+    } else if (brief.case_writer.model_called) {
+      setProofStepLabel(2, "Model output rejected");
+      markProofStep(2, "blocked");
+      setRunwayActivity("Stopped: model output failed validation; deterministic fallback preserved the case.", "error");
+      lines.push("MODEL OUTPUT REJECTED: two validation attempts failed.");
+      lines.push("A deterministic fallback was stored with a validation receipt; the live decision journey did not continue.");
+      writeRunway(lines);
+      setModelConnectionState("OpenAI output rejected", "Deterministic fallback preserved the case");
+      el("case-brief-result").textContent = "Model output failed validation twice. The validated fallback is available for inspection.";
+      el("case-brief-result").classList.add("error");
+      await selectCase(decisionCase.case_id);
+      openArtifact("brief");
+      return;
     } else {
       throw new Error("OpenAI did not produce a live grounded brief.");
     }

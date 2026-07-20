@@ -21,7 +21,8 @@ export function createEmptyAiCaseBrief() {
     recommended_disposition: "",
     missing_information_request: "",
     handoff_note: "",
-    citations: []
+    citations: [],
+    validation_receipt: null
   };
 }
 

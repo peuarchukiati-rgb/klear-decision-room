@@ -13,7 +13,7 @@ This file records file-level reuse decisions for the current KLEAR Decision Room
 | `kfc-p1-finance-reviewer/data/vendor_master.json` | Data-model reference | `data/demo/vendor-master.json` | Vendor-master concept reused with new neutral synthetic vendors and fields. |
 | `kfc-p1-finance-reviewer/data/paid_ledger.json` | Data-model reference | `data/demo/paid-ledger.json` | Paid-ledger anchor concept reused with new neutral synthetic records. |
 | `kfc-p1-finance-reviewer/data/incoming_batch.json` | Scenario reference | `data/demo/demo-invoices.json`, `data/demo/scenarios.json` | Scenario shape reused as finance demo inspiration; records are newly authored. |
-| `kfc-p1-finance-reviewer/reason_writer.py`, `docs/index.html` | Boundary and interaction reference | `packages/case-writer/src/*`, `src/config/modelConfig.js`, `config/model.json`, `apps/web/index.html` | AI-as-case-writer boundary and key-only reviewer interaction reused. KLEAR Decision Room implements a newly written OpenAI Responses API case writer with structured output validation, config-owned model selection, environment override, and deterministic fallback. No source code copied. |
+| `kfc-p1-finance-reviewer/reason_writer.py`, `docs/index.html` | Boundary and interaction reference | `packages/case-writer/src/*`, `src/config/modelConfig.js`, `config/model.json`, `apps/web/index.html` | AI-as-case-writer boundary and key-only reviewer interaction reused. KLEAR Decision Room implements a newly written OpenAI Responses API case writer with structured output validation, config-owned GPT-5.6 default, environment override for compatible models, validation-feedback retry, auditable receipt, and deterministic fallback. No source code copied. |
 | `kfc-p1-finance-reviewer/build_report.py` | Concept reference | `packages/handoff/src/handoffGenerator.js` | Human + machine handoff idea reused; implementation is newly written with Phase 4 lineage fields. |
 | `kfc-p1-finance-reviewer/output/*` | Not reused | None | Generated outputs are prior work and excluded. |
 | `klear/README.md` | Concept reference | `README.md`, `docs/architecture.md` | Canonical-state and living-handoff concepts reused, rewritten for decision cases. |
@@ -126,6 +126,14 @@ This file records file-level reuse decisions for the current KLEAR Decision Room
 | `render.yaml` | New Render Blueprint for the public Node-hosted judge preview, including health checks and hosted startup configuration. No prior deployment configuration reused. |
 | `package.json` | Added a hosted startup script that seeds the neutral four-case queue before serving the application. |
 | `apps/api/src/server.js` | Added environment-configured host binding so the same server runs locally and on a public Node host. |
+
+## Model Validation Hardening
+
+| Destination | New work description |
+| --- | --- |
+| `packages/case-writer/src/caseBriefValidator.js` | Added a deterministic validation receipt covering output shape, evidence citations, rule citations, recommendation gates, and the human-authority boundary. |
+| `packages/case-writer/src/caseWriterService.js` | Added one validation-feedback retry and a clearly attributed deterministic fallback after a second rejected model output. |
+| `apps/web/index.html`, `apps/web/app.js`, `apps/web/styles.css` | Added a compact persisted validation receipt to the Living Decision Folder without creating a separate evaluation source of truth. |
 
 ## Current Reuse Boundary
 

@@ -15,7 +15,7 @@ const REQUIRED_FIELDS = [
 export function validateCaseBriefOutput(decisionCase, output) {
   const errors = [];
   if (!output || typeof output !== "object" || Array.isArray(output)) {
-    throw new Error("Case brief output must be an object");
+    throw new Error("MODEL_OUTPUT_REJECTED: case brief output must be an object");
   }
 
   for (const field of REQUIRED_FIELDS) {
@@ -32,6 +32,8 @@ export function validateCaseBriefOutput(decisionCase, output) {
 
   if (!Array.isArray(output.citations)) {
     errors.push("citations must be an array");
+  } else if (output.citations.length === 0) {
+    errors.push("citations must include at least one grounded claim");
   }
 
   if (!Array.isArray(output.model_warnings)) {
@@ -88,6 +90,70 @@ export function validateCaseBriefOutput(decisionCase, output) {
   }
 
   return true;
+}
+
+export function createCaseBriefValidationReceipt(
+  decisionCase,
+  output,
+  {
+    model_called = false,
+    model_output_accepted = false,
+    attempt_count = 0,
+    rejected_attempts = [],
+    fallback_used = false,
+    validated_at = new Date().toISOString()
+  } = {}
+) {
+  validateCaseBriefOutput(decisionCase, output);
+
+  const citations = output.citations || [];
+  const evidenceReferenceCount = citations.reduce((total, citation) => total + citation.evidence_ids.length, 0);
+  const ruleReferenceCount = citations.reduce((total, citation) => total + citation.rule_ids.length, 0);
+  const gateActive = hardGateActive(decisionCase);
+
+  return {
+    receipt_version: "klear-case-writer-validation/v1",
+    status: fallback_used ? "PASSED_WITH_FALLBACK" : "PASSED",
+    validated_at,
+    model_called,
+    model_output_accepted,
+    attempt_count,
+    rejected_attempt_count: rejected_attempts.length,
+    fallback_used,
+    checks: [
+      {
+        check_id: "OUTPUT_SHAPE",
+        status: "PASS",
+        detail: "Required structured fields are present and unsupported fields are absent."
+      },
+      {
+        check_id: "EVIDENCE_CITATIONS",
+        status: "PASS",
+        detail: `${evidenceReferenceCount} evidence reference${evidenceReferenceCount === 1 ? "" : "s"} resolved to persisted evidence.`
+      },
+      {
+        check_id: "RULE_CITATIONS",
+        status: "PASS",
+        detail: `${ruleReferenceCount} rule reference${ruleReferenceCount === 1 ? "" : "s"} resolved to deterministic rule results.`
+      },
+      {
+        check_id: "RECOMMENDATION_GATE",
+        status: "PASS",
+        detail: gateActive
+          ? "The recommendation respects the active hard gate and does not approve the case."
+          : "The recommendation is allowed by the current deterministic case state."
+      },
+      {
+        check_id: "HUMAN_AUTHORITY",
+        status: "PASS",
+        detail: "No human decision or decision event was accepted from case-writer output."
+      }
+    ],
+    rejected_attempts: rejected_attempts.map((message, index) => ({
+      attempt: index + 1,
+      reason: message
+    }))
+  };
 }
 
 export function toDecisionCaseBrief(output) {

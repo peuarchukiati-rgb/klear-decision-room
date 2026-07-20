@@ -51,3 +51,6 @@
 - Changed the offline judge path to stop visibly after deterministic truth verification, before case writing or any new human-decision/handoff event, so offline resilience is never presented as a live OpenAI run.
 - Matched the prior KFC/KLEAR key-only interaction pattern by moving the default OpenAI model selection into `config/model.json`; reviewers now supply only an API key, while deployments may still override the model through `KLEAR_MODEL_ID`.
 - Added observable processing states across the guided lifecycle: the active lane, request button, and plain-language activity line now show what operation is running without exposing or fabricating model reasoning.
+- Set the bundled case-writer default to the config-owned `gpt-5.6` alias while preserving `KLEAR_MODEL_ID` overrides for compatible Responses API models.
+- Added a persisted case-writer validation receipt plus one validation-feedback retry; a second rejected model output produces a clearly labeled deterministic fallback and stops the live UI journey.
+- Added an MIT license for the public submission repository.

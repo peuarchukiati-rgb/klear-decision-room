@@ -49,7 +49,11 @@ export async function callOpenAiCaseWriter({ model_id, api_key, messages, fetchI
   const data = await response.json();
   const text = extractOutputText(data).trim();
   if (!text) {
-    throw new Error("OpenAI case writer returned no output text");
+    throw new Error("MODEL_OUTPUT_REJECTED: OpenAI case writer returned no output text");
   }
-  return JSON.parse(text);
+  try {
+    return JSON.parse(text);
+  } catch {
+    throw new Error("MODEL_OUTPUT_REJECTED: OpenAI case writer returned invalid JSON");
+  }
 }

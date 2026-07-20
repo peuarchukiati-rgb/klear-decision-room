@@ -42,7 +42,7 @@ Versioned DecisionCase
 
 - **Decision Intake:** structured handoff packets and messy intake notes both become versioned `DecisionCase` records without granting decision authority.
 - **Truth Lane:** deterministic normalization, evidence creation, and rules decide what can be verified.
-- **Grounded Case Writer:** the configured model, or a deterministic fallback, writes a grounded case brief from supplied facts, rules, unknowns, and evidence only.
+- **Grounded Case Writer:** the configured model, or a deterministic fallback, writes a grounded case brief from supplied facts, rules, unknowns, and evidence only. Every accepted brief carries a deterministic validation receipt; rejected model output is retried once with validation feedback before a clearly disclosed fallback is used.
 - **Human Decision:** a reviewer approves, rejects, requests evidence, or escalates through an explicit decision event.
 - **Decision Handoff:** the latest persisted case becomes a two-plane human-readable and machine-readable handoff.
 - **Pack Back:** the next owner returns structured updates that merge into the case through a guarded version bump.
@@ -176,7 +176,7 @@ https://dashboard.render.com/blueprint/new?repo=https://github.com/peuarchukiati
 
 The hosted start command seeds the four-case rehearsal queue before starting the API. Render free services use an ephemeral filesystem, so the public demo intentionally resets to that known queue after a restart, redeploy, or idle spin-down. This is a judge-preview boundary, not production persistence.
 
-The bundled model selection lives in `config/model.json` and can be overridden with `KLEAR_MODEL_ID`. Do not configure a shared OpenAI key on the public host; judges provide only their own request-scoped key through the reviewer console.
+The bundled model selection is `gpt-5.6` in `config/model.json`. A deployment may use `KLEAR_MODEL_ID` to select another Responses API model that supports the required structured-output schema, without changing application source or exposing model selection in the reviewer UI. Do not configure a shared OpenAI key on the public host; judges provide only their own request-scoped key through the reviewer console.
 
 ## Live Model Demo
 
@@ -185,9 +185,11 @@ The reviewer console presents OpenAI as a visible, replaceable case-writing laye
 1. Open the [public demo](https://klear-decision-room.onrender.com) or `http://127.0.0.1:8787/` locally.
 2. In **Model Connection**, paste an OpenAI API key into the visible request-scoped field. KLEAR uses the bundled model configuration; no model selection is required in the reviewer UI.
 3. Click **Connect & Run Live**. The Truth Layer remains deterministic, only the Grounded Case Writer calls the model, and the Human Decision lane remains authoritative.
-4. Watch the Case Writer state change from red `OpenAI not connected` to `OpenAI live` while the same server-side guardrails continue to block unsafe approval.
+4. Watch the Case Writer state change from red `OpenAI not connected` to `OpenAI live`, then inspect the validation receipt for structured output, evidence citations, rule citations, recommendation gates, and preserved human authority.
 
 The key is sent only from the browser to the API for that one request and cleared from the form after every attempt. It is not stored in `DecisionCase`, version snapshots, handoff artifacts, history, or any file under `storage/`. The public demo is bring-your-own-key and never carries a shared server-side key.
+
+If model output fails validation, KLEAR retries once with the validator's failure reasons. A second rejected output is never displayed as a live brief: the system stores a clearly labeled deterministic fallback with a `PASSED_WITH_FALLBACK` receipt and stops the live reviewer journey.
 
 ## Tests
 
@@ -201,7 +203,7 @@ The tests cover deterministic rules, evidence citation integrity, model-output v
 
 Codex was used throughout Build Week to inspect the prior repositories, implement and test the DecisionCase architecture, build the deterministic truth and human-decision lanes, and iterate on the reviewer experience. GPT-5.6 was used for architecture reasoning, implementation review, and the grounded case-writer path demonstrated in the product.
 
-The product does not hardcode that model into runtime source. Model selection lives in `config/model.json`, with an optional `KLEAR_MODEL_ID` environment override; the same grounded-output validator and human-decision boundary apply regardless of model size.
+The product does not hardcode that model into runtime source. The bundled default is `gpt-5.6` in `config/model.json`, with an optional `KLEAR_MODEL_ID` environment override for another compatible Responses API model; the same grounded-output validator and human-decision boundary apply regardless of model size.
 
 ## Model Configuration
 
@@ -216,3 +218,7 @@ Model identifiers must come from environment or config and must not be hardcoded
 ## Future Domains
 
 The current demo stays focused on finance approval. The same `DecisionCase` architecture can later support compliance, underwriting, onboarding, maintenance, QA, or submission auditing workflows where evidence, rules, AI explanation, and human accountability must remain separate.
+
+## License
+
+MIT. See [`LICENSE`](LICENSE).

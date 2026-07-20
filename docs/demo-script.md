@@ -67,21 +67,22 @@ curl -X POST http://127.0.0.1:8787/cases/$CASE_ID/case-brief
 
 4. Refresh the reviewer console.
 5. Inspect normalized facts, readiness, rule results, unknowns, traceability, and Decision Timeline.
-6. For the judge-facing live beat, paste only an OpenAI API key into the visible **Model Connection** field and click **Connect & Run Live**. KLEAR resolves the bundled model configuration behind the UI; the red `OpenAI not connected` lane should change to `OpenAI live`.
-7. Submit `REQUEST_EVIDENCE` with reviewer identity, reason, and required evidence.
-8. Open the Handoff view and inspect Markdown plus JSON. Point out:
+6. For the judge-facing live beat, paste only an OpenAI API key into the visible **Model Connection** field and click **Connect & Run Live**. KLEAR resolves the bundled GPT-5.6 configuration behind the UI; the red `OpenAI not connected` lane should change to `OpenAI live`.
+7. Point to the **Validation receipt** under the grounded brief. It must show that structured output, evidence citations, rule citations, recommendation gates, and human authority passed before display.
+8. Submit `REQUEST_EVIDENCE` with reviewer identity, reason, and required evidence.
+9. Open the Handoff view and inspect Markdown plus JSON. Point out:
    - `handoff_id`
    - `generated_from_case_version`
    - `generated_from_decision_event`
-9. Open Pack Back and import the seeded acknowledgement. Point out that the case remains evidence-required until vendor bank confirmation arrives.
-10. Inspect Versions, Decision Story, and Timeline through the API:
+10. Open Pack Back and import the seeded acknowledgement. Point out that the case remains evidence-required until vendor bank confirmation arrives.
+11. Inspect Versions, Decision Story, and Timeline through the API:
 
 ```bash
 curl http://127.0.0.1:8787/cases/$CASE_ID/versions
 curl http://127.0.0.1:8787/cases/$CASE_ID/decision-story
 ```
 
-11. State the thesis: deterministic systems verify facts, AI prepares a grounded case, humans own decisions through explicit events, and the payment stays blocked while evidence is unresolved.
+12. State the thesis: deterministic systems verify facts, AI prepares a grounded case, humans own decisions through explicit events, and the payment stays blocked while evidence is unresolved.
 
 ## Guardrail Proof Beat
 

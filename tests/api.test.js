@@ -349,7 +349,9 @@ test("API writes live case brief from per-request key and does not persist the k
   assert.equal(briefRes.status, 200);
   const brief = briefRes.json();
   assert.equal(brief.case_writer.model_called, true);
+  assert.equal(brief.case_writer.model_output_accepted, true);
   assert.equal(brief.case_writer.model_id, "smallest-test-model");
+  assert.equal(brief.case_writer.validation_receipt.status, "PASSED");
   assert.equal(brief.case.ai_case_brief.writer_mode, "model");
 
   const persisted = await store.getCase(caseId);

@@ -253,7 +253,9 @@ export async function handleRequest(req, res, store = new CaseStore(), {
         case_writer: {
           mode: result.writer.mode,
           model_called: result.writer.model_called,
-          model_id: result.case.ai_case_brief.model_id || null
+          model_output_accepted: result.writer.model_output_accepted,
+          model_id: result.case.ai_case_brief.model_id || null,
+          validation_receipt: result.writer.validation_receipt
         }
       });
       return;

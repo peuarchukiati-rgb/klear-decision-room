@@ -4,7 +4,7 @@ import { getModelConfig } from "../src/config/modelConfig.js";
 
 test("bundled model config supports key-only reviewer setup", () => {
   assert.deepEqual(getModelConfig({}), {
-    model_id: "gpt-4o-mini",
+    model_id: "gpt-5.6",
     source: "config/model.json"
   });
 });
