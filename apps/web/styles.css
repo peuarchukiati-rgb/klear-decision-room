@@ -372,10 +372,12 @@ h3 {
 }
 
 .lane-state strong {
-  overflow: hidden;
+  min-height: 28px;
+  overflow: visible;
   font-size: 12px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  line-height: 1.15;
+  text-overflow: clip;
+  white-space: normal;
 }
 
 .lane-state small {
@@ -387,13 +389,28 @@ h3 {
   background: var(--blue-soft);
 }
 
+.case-writer-lane.disconnected {
+  background: var(--red-soft);
+  color: var(--red);
+}
+
+.case-writer-lane.connecting {
+  background: var(--amber-soft);
+  color: var(--amber);
+}
+
+.case-writer-lane.connected {
+  background: var(--green-soft);
+  color: var(--green);
+}
+
 .human-lane {
   background: var(--green-soft);
 }
 
 .model-connection-form {
   display: grid;
-  grid-template-columns: minmax(170px, 1fr) minmax(150px, 0.8fr) auto;
+  grid-template-columns: minmax(220px, 1fr);
   align-items: end;
   gap: 9px 10px;
   padding-left: 20px;
@@ -427,6 +444,10 @@ h3 {
 .connection-result {
   color: #315f83;
   font-weight: 650;
+}
+
+.connection-result.error {
+  color: var(--red);
 }
 
 .demo-runner {

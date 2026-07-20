@@ -9,3 +9,5 @@ services:
     envVars:
       - key: HOST
         value: 0.0.0.0
+      - key: KLEAR_MODEL_ID
+        sync: false

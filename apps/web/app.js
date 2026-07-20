@@ -2,8 +2,7 @@ let selectedCaseId = null;
 let currentStory = null;
 let demoIntakePackets = [];
 let liveModelCredentials = {
-  api_key: "",
-  model_id: ""
+  api_key: ""
 };
 let currentBriefMarkdown = "";
 let currentHandoffMarkdown = "";
@@ -199,14 +198,30 @@ function setRunwayBusy(isBusy) {
 function markProofStep(index, state = "done") {
   const steps = Array.from(document.querySelectorAll("#runway-steps .step"));
   if (steps[index]) {
+    steps[index].classList.remove("done", "blocked", "pending");
     steps[index].classList.add(state);
   }
 }
 
+function setProofStepLabel(index, label) {
+  const steps = Array.from(document.querySelectorAll("#runway-steps .step"));
+  if (steps[index]) steps[index].textContent = label;
+}
+
 function clearProofSteps() {
-  document.querySelectorAll("#runway-steps .step").forEach((step) => {
+  const labels = ["Intake received", "Truth verified", "Grounded brief prepared", "Unsafe approval blocked", "Human decision recorded", "Handoff acknowledged, evidence pending"];
+  document.querySelectorAll("#runway-steps .step").forEach((step, index) => {
     step.classList.remove("done", "blocked", "pending");
+    step.textContent = labels[index];
   });
+}
+
+function setModelConnectionState(state, detail, tone = "disconnected") {
+  const lane = document.querySelector(".case-writer-lane");
+  lane.classList.remove("disconnected", "connected", "connecting");
+  lane.classList.add(tone);
+  el("connection-state").textContent = state;
+  el("connection-detail").textContent = detail;
 }
 
 function sleep(ms) {
@@ -248,13 +263,6 @@ async function importDemoPacket(packetId) {
 
 async function runTruthReview(caseId) {
   return api(`/cases/${caseId}/deterministic-review`, {
-    method: "POST",
-    body: JSON.stringify({})
-  });
-}
-
-async function prepareFallbackBrief(caseId) {
-  return api(`/cases/${caseId}/case-brief`, {
     method: "POST",
     body: JSON.stringify({})
   });
@@ -349,7 +357,7 @@ async function resetWorkspaceView() {
   el("demo-runner").hidden = false;
   el("demo-stage").hidden = true;
   el("runway-status").textContent = "No intake imported";
-  el("runway-result").textContent = "Click Run Bank-Mismatch Demo to prove the payment stays blocked until evidence arrives.";
+  el("runway-result").textContent = "Run offline to verify truth, or connect OpenAI to complete the live decision lifecycle.";
   clearProofSteps();
   el("show-demo").classList.add("demo-cta-pulse");
   await loadCases({ selectFirst: false });
@@ -392,6 +400,16 @@ function renderCase(story) {
     ${renderRows(story.readiness.readiness_reasons, (reason) => reason)}
   `;
   const aiBrief = decisionCase.ai_case_brief || {};
+  if (aiBrief.writer_mode === "model") {
+    el("authority-title").textContent = "OpenAI prepared this case.";
+    el("authority-detail").textContent = "Only an explicit human action can decide it.";
+  } else if (aiBrief.writer_mode === "fallback") {
+    el("authority-title").textContent = "A deterministic fallback preview prepared this case.";
+    el("authority-detail").textContent = "No model was called; only an explicit human action can decide it.";
+  } else {
+    el("authority-title").textContent = "OpenAI has not prepared this case.";
+    el("authority-detail").textContent = "Truth is verified; connect OpenAI before the live decision journey continues.";
+  }
   renderCaseWriterBadge(aiBrief);
   const briefText = [
     aiBrief.summary ? `Summary: ${aiBrief.summary}` : "No grounded case brief prepared yet.",
@@ -480,7 +498,7 @@ function renderDecisionSnapshot(decisionCase) {
 }
 
 function renderBriefArtifact(decisionCase, aiBrief) {
-  const mode = aiBrief.writer_mode === "model" ? `Live model · ${aiBrief.model_id || "configured model"}` : aiBrief.writer_mode === "fallback" ? "Deterministic fallback" : "Not prepared";
+  const mode = aiBrief.writer_mode === "model" ? "OpenAI live model" : aiBrief.writer_mode === "fallback" ? "Deterministic fallback" : "Not prepared";
   const citations = (aiBrief.citations || []).map((citation) => `- ${citation.claim}\n  - Evidence: ${(citation.evidence_ids || []).join(", ") || "None"}\n  - Rules: ${(citation.rule_ids || []).join(", ") || "None"}`).join("\n");
   currentBriefMarkdown = `---\nprotocol: klear-case-brief/v1\ncase_id: ${decisionCase.case_id}\nsource_version: ${decisionCase.version}\nwriter_mode: ${aiBrief.writer_mode || "none"}\n---\n\n# Grounded Case Brief\n\n## Summary\n${aiBrief.summary || "No brief prepared."}\n\n## Risk\n${aiBrief.risk_explanation || "Not established."}\n\n## Recommended Disposition\n${aiBrief.recommended_disposition || "No recommendation."}\n\n## Missing Information\n${aiBrief.missing_information_request || "None recorded."}\n\n## Citations\n${citations || "- None recorded."}\n`;
   el("brief-filename").textContent = `${decisionCase.case_id}-case-brief.md`;
@@ -499,7 +517,7 @@ function renderBriefArtifact(decisionCase, aiBrief) {
 function renderCaseWriterBadge(aiBrief = {}) {
   const badge = el("case-writer-badge");
   if (aiBrief.writer_mode === "model") {
-    badge.textContent = `LIVE MODEL: ${aiBrief.model_id || "configured model"}`;
+    badge.textContent = "OPENAI LIVE";
     badge.className = "pill ready";
   } else {
     badge.textContent = aiBrief.writer_mode === "fallback" ? "OFFLINE BRIEF" : "NOT PREPARED";
@@ -608,11 +626,11 @@ el("hide-demo").addEventListener("click", () => {
 });
 el("packet-select").addEventListener("change", renderSelectedPacket);
 window.addEventListener("beforeunload", () => {
-  liveModelCredentials = { api_key: "", model_id: "" };
+  liveModelCredentials = { api_key: "" };
 });
 
 async function runBankMismatchDemo({ credentials = null } = {}) {
-  const usingLiveModel = Boolean(credentials?.api_key && credentials?.model_id);
+  const usingLiveModel = Boolean(credentials?.api_key);
   el("start-live-demo").classList.remove("demo-cta-pulse");
   el("show-demo").classList.remove("demo-cta-pulse");
   setRunwayBusy(true);
@@ -649,25 +667,30 @@ async function runBankMismatchDemo({ credentials = null } = {}) {
     await selectCase(decisionCase.case_id);
     await sleep(650);
 
-    const brief = usingLiveModel
-      ? await prepareLiveBrief(decisionCase.case_id, credentials)
-      : reusedCuratedHero
-        ? {
-            case: decisionCase,
-            case_writer: { model_called: decisionCase.ai_case_brief?.writer_mode === "model" }
-          }
-        : await prepareFallbackBrief(decisionCase.case_id);
+    if (!usingLiveModel) {
+      setProofStepLabel(2, "OpenAI not connected");
+      markProofStep(2, "blocked");
+      lines.push("OPENAI NOT CONNECTED: the live grounded case brief cannot be prepared.");
+      lines.push("Truth verification completed, but this decision journey remains incomplete.");
+      writeRunway(lines);
+      setModelConnectionState("OpenAI not connected", "Live case writer unavailable");
+      el("case-brief-result").textContent = "Offline stopped after truth verification. Connect OpenAI to continue.";
+      el("case-brief-result").classList.add("error");
+      await loadCases();
+      switchTab("evidence");
+      document.querySelector(".app-shell").scrollIntoView({ behavior: "smooth", block: "start" });
+      return;
+    }
+
+    const brief = await prepareLiveBrief(decisionCase.case_id, credentials);
     markProofStep(2);
     if (brief.case_writer.model_called) {
-      lines.push(`Grounded case brief prepared by live model: ${brief.case_writer.model_id}.`);
-      el("connection-state").textContent = `Live · ${brief.case_writer.model_id}`;
-      el("connection-detail").textContent = "Connected for this request";
-      el("case-brief-result").textContent = `LIVE MODEL generated the grounded brief with ${brief.case_writer.model_id}.`;
+      lines.push("Grounded case brief prepared by OpenAI.");
+      setModelConnectionState("OpenAI live", "Connected for this request", "connected");
+      el("case-brief-result").textContent = "OPENAI LIVE generated the grounded brief.";
+      el("case-brief-result").classList.remove("error");
     } else {
-      lines.push("Grounded case brief prepared by deterministic fallback.");
-      el("connection-state").textContent = "Offline fallback";
-      el("connection-detail").textContent = "No model call";
-      el("case-brief-result").textContent = "Offline journey completed without model credentials.";
+      throw new Error("OpenAI did not produce a live grounded brief.");
     }
     writeRunway(lines);
     await selectCase(decisionCase.case_id);
@@ -701,9 +724,9 @@ async function runBankMismatchDemo({ credentials = null } = {}) {
   } catch (error) {
     lines.push(`Demo stopped: ${error.message}`);
     writeRunway(lines);
-    el("connection-state").textContent = "Connection failed";
-    el("connection-detail").textContent = "Check credentials and model ID";
+    setModelConnectionState("OpenAI connection failed", "Check the API key and server configuration");
     el("case-brief-result").textContent = error.message;
+    el("case-brief-result").classList.add("error");
   } finally {
     setRunwayBusy(false);
   }
@@ -774,17 +797,11 @@ el("run-review").addEventListener("click", async () => {
 
 el("run-brief").addEventListener("click", async () => {
   if (!selectedCaseId) return;
-  try {
-    const result = await prepareFallbackBrief(selectedCaseId);
-    writeRunway(result.case_writer.model_called
-      ? `Live model prepared brief with ${result.case_writer.model_id}.`
-      : "Fallback brief prepared without model credentials.");
-    await selectCase(selectedCaseId);
-    await loadCases();
-    openArtifact("brief");
-  } catch (error) {
-    writeRunway(error.message);
-  }
+  setModelConnectionState("OpenAI not connected", "Live case writer unavailable");
+  el("case-brief-result").textContent = "Connect OpenAI before preparing the grounded brief.";
+  el("case-brief-result").classList.add("error");
+  writeRunway("Grounded brief unavailable: connect OpenAI to continue the live decision journey.");
+  openLiveModelSetup();
 });
 
 el("try-blocked-approve").addEventListener("click", async () => {
@@ -853,12 +870,11 @@ el("case-brief-form").addEventListener("submit", async (event) => {
   event.preventDefault();
   const form = event.currentTarget;
   liveModelCredentials = {
-    api_key: form.api_key.value,
-    model_id: form.model_id.value
+    api_key: form.api_key.value
   };
-  el("connection-state").textContent = "Connecting...";
-  el("connection-detail").textContent = "Request-scoped credentials";
+  setModelConnectionState("Connecting to OpenAI...", "Request-scoped API key", "connecting");
   el("case-brief-result").textContent = "Running the same decision workflow with a live case writer.";
+  el("case-brief-result").classList.remove("error");
   try {
     await runBankMismatchDemo({ credentials: { ...liveModelCredentials } });
   } finally {

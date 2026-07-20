@@ -337,11 +337,13 @@ test("API writes live case brief from per-request key and does not persist the k
     method: "POST",
     url: `/cases/${caseId}/case-brief`,
     body: {
-      api_key: liveKey,
-      model_id: "smallest-test-model"
+      api_key: liveKey
     },
     store,
-    options: { fetchImpl }
+    options: {
+      fetchImpl,
+      modelEnv: { KLEAR_MODEL_ID: "smallest-test-model" }
+    }
   });
 
   assert.equal(briefRes.status, 200);
@@ -355,6 +357,28 @@ test("API writes live case brief from per-request key and does not persist the k
   const versionsText = JSON.stringify(await store.listVersions(caseId));
   assert.equal(persistedText.includes(liveKey), false);
   assert.equal(versionsText.includes(liveKey), false);
+});
+
+test("API fails closed when a request key is supplied without deployment model config", async () => {
+  const dataDir = await mkdtemp(path.join(os.tmpdir(), "klear-api-"));
+  const store = new CaseStore({ dataDir });
+  const createdRes = await request({ method: "POST", url: "/cases", body: {}, store });
+  const caseId = createdRes.json().case.case_id;
+  const before = await store.getCase(caseId);
+
+  const briefRes = await requestWithOptions({
+    method: "POST",
+    url: `/cases/${caseId}/case-brief`,
+    body: { api_key: "not-persisted" },
+    store,
+    options: { modelEnv: {} }
+  });
+
+  assert.equal(briefRes.status, 400);
+  assert.match(briefRes.json().error, /not configured/);
+  const after = await store.getCase(caseId);
+  assert.equal(after.version, before.version);
+  assert.equal(after.ai_case_brief.summary, "");
 });
 
 test("API exposes readiness, traceability, and timeline projections", async () => {

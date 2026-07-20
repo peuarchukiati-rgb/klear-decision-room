@@ -2,7 +2,6 @@ import { mkdir, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { CaseStore } from "../packages/case-store/src/caseStore.js";
-import { writeGroundedCaseBrief } from "../packages/case-writer/src/index.js";
 import { importIntakePacket, listDemoIntakePackets } from "../packages/intake/src/index.js";
 import { runDeterministicReview } from "../packages/rules-engine/src/index.js";
 
@@ -37,15 +36,12 @@ export async function seedDemoQueue({
       packet: { ...demoPacket.packet, received_at: receivedAt }
     });
     const reviewed = await runDeterministicReview(store, imported.case.case_id);
-    const finalCase = scenarioId === "SCN-BANK-MISMATCH"
-      ? (await writeGroundedCaseBrief(store, reviewed.case_id, { env: {}, allowFallback: true })).case
-      : reviewed;
 
     seeded.push({
       scenario_id: scenarioId,
-      case_id: finalCase.case_id,
-      status: finalCase.status,
-      version: finalCase.version
+      case_id: reviewed.case_id,
+      status: reviewed.status,
+      version: reviewed.version
     });
   }
 

@@ -80,8 +80,8 @@ Phase 4 exposes derived judge-facing intelligence without changing that source-o
 
 ## Walkthrough
 
-1. Open the reviewer console and click **Run Bank-Mismatch Demo**.
-2. Watch KLEAR import intake, run deterministic truth review, prepare a grounded brief, block unsafe approval, record a human evidence request, and receive handoff acknowledgement while evidence remains pending.
+1. Open the reviewer console and click **Run Bank-Mismatch Demo** to see deterministic truth verification stop honestly at the disconnected OpenAI lane.
+2. Provide a request-scoped OpenAI API key and click **Connect & Run Live** to prepare the grounded brief, block unsafe approval, record a human evidence request, and receive handoff acknowledgement while evidence remains pending.
 3. Read the Living Decision Folder's primary finding and next action, then open its evidence, portable handoff artifact, and immutable history.
 4. Use **Compare Good vs Messy Intake** to see clean structured input become decision-ready while messy input preserves unknowns instead of guessing.
 
@@ -117,7 +117,7 @@ curl http://127.0.0.1:8787/cases/$CASE_ID/timeline
 curl http://127.0.0.1:8787/cases/$CASE_ID/decision-story
 ```
 
-The reviewer console provides the fastest judge path: click **Run Bank-Mismatch Demo** for a one-click operational proof. Manual scenario controls remain available under the demo stage for choosing a specific intake packet and stepping through the same lifecycle.
+The reviewer console provides two judge paths: **Run Bank-Mismatch Demo** proves the honest offline stopping point, while **Connect & Run Live** proves the complete operational lifecycle. Manual scenario controls remain available under the demo stage for choosing a specific intake packet.
 
 ## API
 
@@ -158,7 +158,7 @@ The API listens on `PORT` or `8787`.
 
 The same server serves the static reviewer console at `/`.
 
-No `.env` file is required for the demo path. Without model credentials, the case writer uses a deterministic fallback so the full reviewer workflow still runs from a fresh clone.
+No `.env` file is required to inspect seeded cases or run deterministic truth verification. The API retains a deterministic fallback for resilience and automated testing, while the reviewer console intentionally stops the offline live-demo path before case writing so it never implies that OpenAI was called.
 
 ## Public Demo Deployment
 
@@ -176,17 +176,16 @@ https://dashboard.render.com/blueprint/new?repo=https://github.com/peuarchukiati
 
 The hosted start command seeds the four-case rehearsal queue before starting the API. Render free services use an ephemeral filesystem, so the public demo intentionally resets to that known queue after a restart, redeploy, or idle spin-down. This is a judge-preview boundary, not production persistence.
 
-Do not configure a shared OpenAI key in the public host. Judges can use deterministic fallback or provide their own key and model ID through the request-scoped reviewer-console fields.
+Configure `KLEAR_MODEL_ID` on the public host. Do not configure a shared OpenAI key there; judges provide only their own request-scoped key through the reviewer console.
 
 ## Live Model Demo
 
-The reviewer console presents the model as a visible, replaceable case-writing layer. The same bank-mismatch journey can run offline with the deterministic fallback or live with a judge-provided OpenAI API key and model ID.
+The reviewer console presents OpenAI as a visible, replaceable case-writing layer. Offline mode verifies deterministic truth and then stops visibly; a judge-provided OpenAI API key unlocks the complete bank-mismatch lifecycle.
 
 1. Open the [public demo](https://klear-decision-room.onrender.com) or `http://127.0.0.1:8787/` locally.
-2. In **Model Connection**, paste an OpenAI API key and an available `Model ID` into the visible request-scoped fields.
+2. In **Model Connection**, paste an OpenAI API key into the visible request-scoped field. The deployment supplies its model ID through `KLEAR_MODEL_ID` configuration.
 3. Click **Connect & Run Live**. The Truth Layer remains deterministic, only the Grounded Case Writer calls the model, and the Human Decision lane remains authoritative.
-4. Use the smallest suitable model to prove the architecture, not model size, carries the trust boundary.
-5. Watch the Case Writer state and brief badge change from `Offline fallback` to `Live · <model ID>` while the same server-side guardrails continue to block unsafe approval.
+4. Watch the Case Writer state change from red `OpenAI not connected` to `OpenAI live` while the same server-side guardrails continue to block unsafe approval.
 
 The key is sent only from the browser to the API for that one request and cleared from the form after every attempt. It is not stored in `DecisionCase`, version snapshots, handoff artifacts, history, or any file under `storage/`. The public demo is bring-your-own-key and never carries a shared server-side key.
 
@@ -202,15 +201,15 @@ The tests cover deterministic rules, evidence citation integrity, model-output v
 
 Codex was used throughout Build Week to inspect the prior repositories, implement and test the DecisionCase architecture, build the deterministic truth and human-decision lanes, and iterate on the reviewer experience. GPT-5.6 was used for architecture reasoning, implementation review, and the grounded case-writer path demonstrated in the product.
 
-The product does not hardcode that model into runtime source. Judges can supply an available model ID through environment configuration or the reviewer console; the same grounded-output validator and human-decision boundary apply regardless of model size.
+The product does not hardcode that model into runtime source. Operators supply the available model ID through environment configuration; the same grounded-output validator and human-decision boundary apply regardless of model size.
 
 ## Model Configuration
 
 Deterministic review never calls a model.
 
-The case writer calls a model only when both `OPENAI_API_KEY` and `KLEAR_MODEL_ID` are configured. Without credentials, it produces a deterministic fallback brief so judges can run the project from a fresh clone.
+The case writer calls a model only when both `OPENAI_API_KEY` and `KLEAR_MODEL_ID` are configured. Without credentials, its service-level deterministic fallback remains available for resilience and tests, while the visible offline demo stops before case writing.
 
-For the reviewer console, those same credentials can be supplied per request through the masked API-key field and model-id field. Per-request credentials are discarded after the request.
+For the reviewer console, the API key is supplied per request through the masked field and discarded after the request. The model ID remains deployment configuration and is never requested from the reviewer.
 
 Model identifiers must come from environment or config and must not be hardcoded in source.
 

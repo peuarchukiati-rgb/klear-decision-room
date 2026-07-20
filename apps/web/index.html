@@ -57,7 +57,7 @@
       <section id="model-connection" class="model-connection" aria-labelledby="model-connection-title">
         <div class="connection-summary">
           <span class="eyebrow">Replaceable model layer</span>
-          <h2 id="model-connection-title">Connect a model, or prove the workflow offline.</h2>
+          <h2 id="model-connection-title">Connect OpenAI to complete the live workflow.</h2>
           <p>The decision engine is KLEAR. OpenAI is connected only for the grounded case-writing lane.</p>
         </div>
         <div class="lane-boundaries" aria-label="Decision lane boundaries">
@@ -66,10 +66,10 @@
             <strong>Deterministic</strong>
             <small>No model call</small>
           </div>
-          <div class="lane-state case-writer-lane">
+          <div class="lane-state case-writer-lane disconnected">
             <span>Case Writer</span>
-            <strong id="connection-state">Offline fallback</strong>
-            <small id="connection-detail">Optional live model</small>
+            <strong id="connection-state">OpenAI not connected</strong>
+            <small id="connection-detail">Live case writer unavailable</small>
           </div>
           <div class="lane-state human-lane">
             <span>Human Decision</span>
@@ -81,16 +81,13 @@
           <label>OpenAI API Key
             <input name="api_key" type="password" autocomplete="off" placeholder="Request-scoped API key" aria-describedby="model-security-note" required>
           </label>
-          <label>Model ID
-            <input name="model_id" placeholder="Enter an available model ID" required>
-          </label>
           <div class="connection-actions">
             <button type="submit" class="primary-action">Connect &amp; Run Live</button>
             <button type="button" id="run-offline-demo">Run Offline Demo</button>
             <button type="button" id="clear-model-key" class="quiet-button">Clear Key</button>
           </div>
           <p id="model-security-note" class="model-security-note">Sent only for the case-writer request, cleared after every attempt, and never stored in case data, history, or handoff.</p>
-          <p id="case-brief-result" class="connection-result" aria-live="polite">No model connected. The full demo remains available offline.</p>
+          <p id="case-brief-result" class="connection-result error" aria-live="polite">Offline can verify truth, but cannot complete the live decision journey.</p>
         </form>
       </section>
 
@@ -124,12 +121,12 @@
         <div class="runway-steps" id="runway-steps">
           <span class="step">Intake received</span>
           <span class="step">Truth verified</span>
-          <span class="step">AI brief prepared</span>
+          <span class="step">Grounded brief prepared</span>
           <span class="step">Unsafe approval blocked</span>
           <span class="step">Human decision recorded</span>
           <span class="step">Handoff acknowledged, evidence pending</span>
         </div>
-        <pre id="runway-result">Click Run Bank-Mismatch Demo to prove the payment stays blocked until evidence arrives.</pre>
+        <pre id="runway-result">Run offline to verify truth, or connect OpenAI to complete the live decision lifecycle.</pre>
 
         <details class="manual-demo">
           <summary>Manual scenario controls</summary>
@@ -210,8 +207,8 @@
             <div class="folder-body">
               <section id="tab-review" class="tab-panel">
                 <div class="authority-note">
-                  <strong>AI prepared this case.</strong>
-                  <span>Only an explicit human action can decide it.</span>
+                  <strong id="authority-title">OpenAI has not prepared this case.</strong>
+                  <span id="authority-detail">Truth is verified; only an explicit human action can decide it.</span>
                 </div>
                 <div class="overview-grid">
                   <div class="overview-main">

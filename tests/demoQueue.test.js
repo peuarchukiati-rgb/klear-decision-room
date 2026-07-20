@@ -26,7 +26,8 @@ test("curated demo queue seeds four distinct reviewed scenarios deterministicall
     "READY_FOR_DECISION"
   ]);
   assert.equal(cases.length, 4);
-  assert.equal(cases[0].ai_case_brief.writer_mode, "fallback");
+  assert.equal(cases[0].ai_case_brief.summary, "");
+  assert.equal(cases[0].ai_case_brief.writer_mode, undefined);
   assert.equal(cases[2].facts.find((item) => item.field === "vendor_name")?.value, "Unmatched Field Services");
   assert.equal(cases[2].rule_results.find((item) => item.rule_id === "R-002")?.status, "UNKNOWN");
 });

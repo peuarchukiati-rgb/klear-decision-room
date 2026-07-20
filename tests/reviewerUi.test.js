@@ -13,14 +13,16 @@ test("static reviewer UI exposes Phase 4 operational panels", async () => {
     "KLEAR verifies what is known, preserves what is unknown, and never owns the decision.",
     "Run Demo",
     "Model Connection",
-    "Connect a model, or prove the workflow offline.",
+    "Connect OpenAI to complete the live workflow.",
     "The decision engine is KLEAR. OpenAI is connected only for the grounded case-writing lane.",
     "Truth Layer",
     "Deterministic",
     "Case Writer",
-    "Offline fallback",
+    "OpenAI not connected",
+    "Live case writer unavailable",
     "Human Decision",
     "Human only",
+    "OpenAI has not prepared this case.",
     "Connect &amp; Run Live",
     "Run Offline Demo",
     "Run Bank-Mismatch Demo",
@@ -45,7 +47,7 @@ test("static reviewer UI exposes Phase 4 operational panels", async () => {
     "decision-handoff.md",
     "Pack Back",
     "API Key",
-    "Model ID"
+    "Offline can verify truth, but cannot complete the live decision journey."
   ]) {
     assert.ok(html.includes(label), `UI includes ${label}`);
   }
@@ -68,12 +70,14 @@ test("static reviewer UI exposes Phase 4 operational panels", async () => {
   assert.ok(js.includes("/case-brief"));
   assert.ok(js.includes("/decisions"));
   assert.ok(js.includes("/pack-back"));
-  assert.ok(js.includes("LIVE MODEL"));
+  assert.ok(js.includes("OPENAI LIVE"));
   assert.ok(js.includes("openLiveModelSetup"));
   assert.ok(js.includes("prepareLiveBrief"));
   assert.ok(js.includes("runBankMismatchDemo"));
   assert.ok(html.includes("Request-scoped API key"));
-  assert.ok(html.includes("Enter an available model ID"));
+  assert.ok(!html.includes("name=\"model_id\""));
+  assert.ok(js.includes("Truth verification completed, but this decision journey remains incomplete."));
+  assert.ok(js.includes("setProofStepLabel(2, \"OpenAI not connected\")"));
   assert.ok(js.includes("beforeunload"));
   assert.match(js, /runBankMismatchDemo\(\{ credentials: \{ \.\.\.liveModelCredentials \} \}\)[\s\S]*finally[\s\S]*clearLiveModelApiKey\(form\)/);
   assert.ok(js.includes("confirm("));
