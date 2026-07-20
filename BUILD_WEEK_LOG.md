@@ -40,3 +40,10 @@
 - Deployed the Render Blueprint at `https://klear-decision-room.onrender.com`.
 - Verified the public `/health`, `/cases`, and reviewer-console routes against the live service.
 - Kept the hosted environment free of shared model credentials; fallback and request-scoped BYO-key paths remain available.
+
+# 2026-07-20 - Visible model connection
+
+- Promoted the request-scoped OpenAI key and model ID fields from a nested brief artifact into a visible workspace-level Model Connection layer.
+- Made the replaceable architecture explicit in the UI: deterministic Truth Layer, optional live/fallback Case Writer, and authoritative Human Decision remain separate.
+- Connected both `Run Offline Demo` and `Connect & Run Live` to the same bank-mismatch lifecycle so the model changes without changing truth or decision guardrails.
+- Preserved automatic API-key clearing after every live attempt and verified the offline loop in isolated demo storage.

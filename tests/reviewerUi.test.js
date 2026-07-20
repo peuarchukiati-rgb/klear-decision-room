@@ -12,8 +12,17 @@ test("static reviewer UI exposes Phase 4 operational panels", async () => {
     "Check the case in detail. Prepare the evidence. Hand it to a human to decide.",
     "KLEAR verifies what is known, preserves what is unknown, and never owns the decision.",
     "Run Demo",
-    "Bring your own key",
-    "Use Live Model",
+    "Model Connection",
+    "Connect a model, or prove the workflow offline.",
+    "The decision engine is KLEAR. OpenAI is connected only for the grounded case-writing lane.",
+    "Truth Layer",
+    "Deterministic",
+    "Case Writer",
+    "Offline fallback",
+    "Human Decision",
+    "Human only",
+    "Connect &amp; Run Live",
+    "Run Offline Demo",
     "Run Bank-Mismatch Demo",
     "Every day, someone has to approve a payment before it goes out",
     "It's Friday, 4:15 PM. This invoice looks normal",
@@ -61,8 +70,11 @@ test("static reviewer UI exposes Phase 4 operational panels", async () => {
   assert.ok(js.includes("/pack-back"));
   assert.ok(js.includes("LIVE MODEL"));
   assert.ok(js.includes("openLiveModelSetup"));
+  assert.ok(js.includes("prepareLiveBrief"));
+  assert.ok(js.includes("runBankMismatchDemo"));
   assert.ok(html.includes("Request-scoped API key"));
+  assert.ok(html.includes("Enter an available model ID"));
   assert.ok(js.includes("beforeunload"));
-  assert.match(js, /await api\(`\/cases\/\$\{selectedCaseId\}\/case-brief`[\s\S]*finally[\s\S]*clearLiveModelApiKey\(form\)/);
+  assert.match(js, /runBankMismatchDemo\(\{ credentials: \{ \.\.\.liveModelCredentials \} \}\)[\s\S]*finally[\s\S]*clearLiveModelApiKey\(form\)/);
   assert.ok(js.includes("confirm("));
 });

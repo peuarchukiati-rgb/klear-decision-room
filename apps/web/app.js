@@ -188,10 +188,12 @@ function writeRunway(lines) {
 }
 
 function setRunwayBusy(isBusy) {
-  for (const id of ["start-live-demo", "compare-intakes", "import-packet", "run-review", "run-brief", "try-blocked-approve", "request-evidence", "import-demo-packback"]) {
+  for (const id of ["start-live-demo", "run-offline-demo", "compare-intakes", "import-packet", "run-review", "run-brief", "try-blocked-approve", "request-evidence", "import-demo-packback"]) {
     const button = el(id);
     if (button) button.disabled = isBusy;
   }
+  const liveSubmit = el("case-brief-form")?.querySelector("button[type='submit']");
+  if (liveSubmit) liveSubmit.disabled = isBusy;
 }
 
 function markProofStep(index, state = "done") {
@@ -255,6 +257,13 @@ async function prepareFallbackBrief(caseId) {
   return api(`/cases/${caseId}/case-brief`, {
     method: "POST",
     body: JSON.stringify({})
+  });
+}
+
+async function prepareLiveBrief(caseId, credentials) {
+  return api(`/cases/${caseId}/case-brief`, {
+    method: "POST",
+    body: JSON.stringify(credentials)
   });
 }
 
@@ -602,13 +611,14 @@ window.addEventListener("beforeunload", () => {
   liveModelCredentials = { api_key: "", model_id: "" };
 });
 
-el("start-live-demo").addEventListener("click", async () => {
+async function runBankMismatchDemo({ credentials = null } = {}) {
+  const usingLiveModel = Boolean(credentials?.api_key && credentials?.model_id);
   el("start-live-demo").classList.remove("demo-cta-pulse");
   el("show-demo").classList.remove("demo-cta-pulse");
   setRunwayBusy(true);
   clearProofSteps();
   const lines = [
-    "Starting bank-mismatch simulation...",
+    `Starting bank-mismatch simulation in ${usingLiveModel ? "live model" : "offline"} mode...`,
     "Scenario: invoice, PO, and vendor exist, but the submitted bank account differs from vendor master."
   ];
   writeRunway(lines);
@@ -639,14 +649,26 @@ el("start-live-demo").addEventListener("click", async () => {
     await selectCase(decisionCase.case_id);
     await sleep(650);
 
-    const brief = reusedCuratedHero
-      ? {
-          case: decisionCase,
-          case_writer: { model_called: decisionCase.ai_case_brief?.writer_mode === "openai" }
-        }
-      : await prepareFallbackBrief(decisionCase.case_id);
+    const brief = usingLiveModel
+      ? await prepareLiveBrief(decisionCase.case_id, credentials)
+      : reusedCuratedHero
+        ? {
+            case: decisionCase,
+            case_writer: { model_called: decisionCase.ai_case_brief?.writer_mode === "model" }
+          }
+        : await prepareFallbackBrief(decisionCase.case_id);
     markProofStep(2);
-    lines.push(brief.case_writer.model_called ? "Grounded case brief prepared by live model." : "Grounded case brief prepared by deterministic fallback.");
+    if (brief.case_writer.model_called) {
+      lines.push(`Grounded case brief prepared by live model: ${brief.case_writer.model_id}.`);
+      el("connection-state").textContent = `Live · ${brief.case_writer.model_id}`;
+      el("connection-detail").textContent = "Connected for this request";
+      el("case-brief-result").textContent = `LIVE MODEL generated the grounded brief with ${brief.case_writer.model_id}.`;
+    } else {
+      lines.push("Grounded case brief prepared by deterministic fallback.");
+      el("connection-state").textContent = "Offline fallback";
+      el("connection-detail").textContent = "No model call";
+      el("case-brief-result").textContent = "Offline journey completed without model credentials.";
+    }
     writeRunway(lines);
     await selectCase(decisionCase.case_id);
     await sleep(650);
@@ -679,10 +701,16 @@ el("start-live-demo").addEventListener("click", async () => {
   } catch (error) {
     lines.push(`Demo stopped: ${error.message}`);
     writeRunway(lines);
+    el("connection-state").textContent = "Connection failed";
+    el("connection-detail").textContent = "Check credentials and model ID";
+    el("case-brief-result").textContent = error.message;
   } finally {
     setRunwayBusy(false);
   }
-});
+}
+
+el("start-live-demo").addEventListener("click", () => runBankMismatchDemo());
+el("run-offline-demo").addEventListener("click", () => runBankMismatchDemo());
 
 el("compare-intakes").addEventListener("click", async () => {
   setRunwayBusy(true);
@@ -811,17 +839,7 @@ function clearLiveModelApiKey(form = el("case-brief-form")) {
 }
 
 async function openLiveModelSetup() {
-  if (!selectedCaseId) {
-    const targetCaseId = curatedHeroCaseId || document.querySelector("[data-case-id]")?.dataset.caseId;
-    if (!targetCaseId) {
-      writeRunway("Run or select a case before generating a live model brief.");
-      return;
-    }
-    await selectCase(targetCaseId);
-  }
-
-  openArtifact("brief");
-  el("artifact-generator").open = true;
+  el("model-connection").scrollIntoView({ behavior: "smooth", block: "start" });
   requestAnimationFrame(() => el("case-brief-form").api_key.focus());
 }
 
@@ -838,22 +856,11 @@ el("case-brief-form").addEventListener("submit", async (event) => {
     api_key: form.api_key.value,
     model_id: form.model_id.value
   };
-  const payload = {};
-  if (liveModelCredentials.api_key) payload.api_key = liveModelCredentials.api_key;
-  if (liveModelCredentials.model_id) payload.model_id = liveModelCredentials.model_id;
-
+  el("connection-state").textContent = "Connecting...";
+  el("connection-detail").textContent = "Request-scoped credentials";
+  el("case-brief-result").textContent = "Running the same decision workflow with a live case writer.";
   try {
-    const result = await api(`/cases/${selectedCaseId}/case-brief`, {
-      method: "POST",
-      body: JSON.stringify(payload)
-    });
-    el("case-brief-result").textContent = result.case_writer.model_called
-      ? `LIVE MODEL generated brief with ${result.case_writer.model_id}.`
-      : "Fallback brief generated without a model call.";
-    await selectCase(selectedCaseId);
-    await loadCases();
-  } catch (error) {
-    el("case-brief-result").textContent = error.message;
+    await runBankMismatchDemo({ credentials: { ...liveModelCredentials } });
   } finally {
     clearLiveModelApiKey(form);
   }

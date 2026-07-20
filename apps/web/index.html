@@ -42,8 +42,8 @@
       <div class="topbar-context">
         <span class="workspace-name">Finance Approval Workspace</span>
         <button id="show-live-model" class="topbar-model-button" aria-label="Use Live Model">
-          <span>Bring your own key</span>
-          <strong>Use Live Model</strong>
+          <span>Case writer</span>
+          <strong>Model Connection</strong>
         </button>
         <button id="show-demo" class="topbar-demo-button demo-cta-pulse" aria-label="Run Demo">
           <span>Live proof</span>
@@ -54,6 +54,46 @@
     </header>
 
     <main class="workspace">
+      <section id="model-connection" class="model-connection" aria-labelledby="model-connection-title">
+        <div class="connection-summary">
+          <span class="eyebrow">Replaceable model layer</span>
+          <h2 id="model-connection-title">Connect a model, or prove the workflow offline.</h2>
+          <p>The decision engine is KLEAR. OpenAI is connected only for the grounded case-writing lane.</p>
+        </div>
+        <div class="lane-boundaries" aria-label="Decision lane boundaries">
+          <div class="lane-state">
+            <span>Truth Layer</span>
+            <strong>Deterministic</strong>
+            <small>No model call</small>
+          </div>
+          <div class="lane-state case-writer-lane">
+            <span>Case Writer</span>
+            <strong id="connection-state">Offline fallback</strong>
+            <small id="connection-detail">Optional live model</small>
+          </div>
+          <div class="lane-state human-lane">
+            <span>Human Decision</span>
+            <strong>Human only</strong>
+            <small>Authoritative</small>
+          </div>
+        </div>
+        <form id="case-brief-form" class="model-connection-form">
+          <label>OpenAI API Key
+            <input name="api_key" type="password" autocomplete="off" placeholder="Request-scoped API key" aria-describedby="model-security-note" required>
+          </label>
+          <label>Model ID
+            <input name="model_id" placeholder="Enter an available model ID" required>
+          </label>
+          <div class="connection-actions">
+            <button type="submit" class="primary-action">Connect &amp; Run Live</button>
+            <button type="button" id="run-offline-demo">Run Offline Demo</button>
+            <button type="button" id="clear-model-key" class="quiet-button">Clear Key</button>
+          </div>
+          <p id="model-security-note" class="model-security-note">Sent only for the case-writer request, cleared after every attempt, and never stored in case data, history, or handoff.</p>
+          <p id="case-brief-result" class="connection-result" aria-live="polite">No model connected. The full demo remains available offline.</p>
+        </form>
+      </section>
+
       <section id="demo-runner" class="demo-runner" aria-label="Guided demo">
         <div class="demo-prompt">
           <span class="eyebrow">Guided review</span>
@@ -336,23 +376,6 @@
             </div>
           </div>
           <div id="case-brief-document" class="rendered-document"></div>
-          <details id="artifact-generator" class="artifact-generator">
-            <summary>Generate with a configured model</summary>
-            <form id="case-brief-form" class="form compact-form">
-              <label>API Key
-                <input name="api_key" type="password" autocomplete="off" placeholder="Request-scoped API key">
-              </label>
-              <label>Model ID
-                <input name="model_id" placeholder="Configured at runtime">
-              </label>
-              <div class="button-row">
-                <button type="submit">Generate Brief</button>
-                <button type="button" id="clear-model-key">Clear Key</button>
-              </div>
-            </form>
-            <p class="meta">The key is sent only for this request, cleared after every attempt, and never stored in the case, history, or handoff.</p>
-            <pre id="case-brief-result"></pre>
-          </details>
         </section>
 
         <section id="artifact-handoff" class="artifact-view" hidden>
