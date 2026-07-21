@@ -20,6 +20,22 @@ The target user is an AP controller or finance reviewer clearing many invoice de
 
 Traditional ERP/AP systems can route approvals, but KLEAR's wedge is the portable decision record: who decided what, against which evidence version, with AI preparation kept separate from human authority.
 
+## Judge Test - No Setup Required
+
+The complete reviewer journey is available at:
+
+**[Open the live KLEAR Decision Room](https://klear-decision-room.onrender.com)**
+
+No clone, installation, environment file, model selection, or test account is required.
+
+1. Open the live workspace. Render's free instance may take up to a minute to wake after inactivity.
+2. Paste your own OpenAI API key into the masked **OpenAI API Key** field.
+3. Click **Connect & Run Live** once.
+4. Watch KLEAR verify the bank mismatch, prepare a grounded OpenAI brief, block unsafe approval, record the reviewer's evidence request, and generate the versioned Decision Handoff.
+5. Inspect the bank-account evidence and `HOLD` recommendation, then open the handoff or deeper audit details.
+
+The key is request-scoped: it is sent only for the case-writer request, cleared from the form after the attempt, and never stored in case data, versions, history, or handoff artifacts. The public deployment contains no shared OpenAI key.
+
 ## The Decision
 
 KLEAR Decision Room keeps each lane independently verifiable and independently replaceable:
@@ -80,44 +96,14 @@ Phase 4 exposes derived judge-facing intelligence without changing that source-o
 
 ## Walkthrough
 
-1. Open the reviewer console. The default Living Decision Folder shows the current finding, cited evidence, prepared recommendation, and next human action without exposing the technical layers all at once.
-2. Paste a request-scoped OpenAI API key into the visible connection panel and click **Connect & Run Live** to prepare the grounded brief, block unsafe approval, record a human evidence request, and receive handoff acknowledgement while evidence remains pending.
-3. Inspect the bank-account comparison and `HOLD` recommendation, then open the portable handoff or expand **Audit details** for readiness, validation, files, normalized facts, and rule results.
-4. Use **Compare Good vs Messy Intake** to see clean structured input become decision-ready while messy input preserves unknowns instead of guessing.
+1. **Decision Intake:** KLEAR loads the synthetic bank-mismatch packet into a persistent `DecisionCase`.
+2. **Truth Lane:** deterministic rules normalize the invoice, link source evidence, and fail `R-003` because the submitted bank account differs from the approved vendor master.
+3. **Grounded Case Writer:** OpenAI receives only the verified case context and prepares a cited brief. A deterministic validator rejects invented evidence or unsafe recommendations.
+4. **Human Decision:** an approval attempt is blocked server-side. The reviewer explicitly chooses `REQUEST_EVIDENCE`; AI cannot write this event.
+5. **Decision Handoff:** KLEAR produces matching Markdown and JSON artifacts with the next owner, required action, rule/evidence references, case version, and decision-event lineage.
+6. **Pack Back:** an acknowledgement returns through the guarded protocol while the case remains `EVIDENCE_REQUIRED`; the system never pretends unfinished work is complete.
 
-Example:
-
-```bash
-npm start
-```
-
-For a clean rehearsal queue before recording, seed four distinct reviewed cases (bank mismatch, duplicate, missing vendor, and clean):
-
-```bash
-npm run seed-demo-queue
-```
-
-Use `npm run reset-demo` only when you want an empty workspace.
-
-Open the reviewer console:
-
-```text
-http://127.0.0.1:8787/
-```
-
-Or use the API from another shell. The seed script prints the generated `case_id`; capture it so repeated demo runs do not depend on a hardcoded number.
-
-```bash
-CASE_ID=$(node scripts/seed-demo-case.js SCN-BANK-MISMATCH | node -e "let s='';process.stdin.on('data',d=>s+=d);process.stdin.on('end',()=>console.log(JSON.parse(s).case_id))")
-curl -X POST http://127.0.0.1:8787/cases/$CASE_ID/deterministic-review
-curl -X POST http://127.0.0.1:8787/cases/$CASE_ID/case-brief
-curl http://127.0.0.1:8787/cases/$CASE_ID/readiness
-curl http://127.0.0.1:8787/cases/$CASE_ID/traceability
-curl http://127.0.0.1:8787/cases/$CASE_ID/timeline
-curl http://127.0.0.1:8787/cases/$CASE_ID/decision-story
-```
-
-The reviewer console provides two judge paths: **Run Demo** reveals the guided offline proof, while the visible OpenAI key panel starts the request-scoped live path. During a run, both the six-step proof tray and its technical log stay visible so a judge can follow the system without opening another layer. Manual scenario controls remain available under the demo stage for choosing a specific intake packet.
+Offline mode is available only to inspect deterministic truth behavior. It stops visibly before the grounded case-writing lane and does not simulate a model call. Local and API-level verification instructions remain below for technical review, but they are not required for the live judge path.
 
 ## API
 
@@ -144,7 +130,7 @@ The reviewer console provides two judge paths: **Run Demo** reveals the guided o
 
 KLEAR uses handoff as a state-transfer protocol, not a loose summary. The protocol is documented in [`docs/handoff-protocol.md`](docs/handoff-protocol.md) so other agents can create, consume, and pack back work without re-deriving context.
 
-## Run
+## Local Verification (Optional)
 
 ```bash
 git clone https://github.com/peuarchukiati-rgb/klear-decision-room.git
@@ -154,7 +140,7 @@ npm run seed-demo-queue
 npm start
 ```
 
-The API listens on `PORT` or `8787`.
+The API listens on `PORT` or `8787`. This local path is optional; judges can exercise the complete workflow through the public demo without rebuilding the project.
 
 The same server serves the static reviewer console at `/`.
 
@@ -178,16 +164,11 @@ The hosted start command seeds the four-case rehearsal queue before starting the
 
 The bundled model selection starts with `gpt-5.6` in `config/model.json`. If the supplied API project cannot access it, KLEAR tries the configured compatibility order (`gpt-5.6-terra`, `gpt-5.6-luna`, then `gpt-4o-mini`) and records whether a compatibility model was selected. A deployment may replace the primary model with `KLEAR_MODEL_ID` and control the ordered fallback list with `KLEAR_MODEL_FALLBACK_IDS`, without changing application source or exposing model selection in the reviewer UI. Do not configure a shared OpenAI key on the public host; judges provide only their own request-scoped key through the reviewer console.
 
-## Live Model Demo
+## Request-Scoped Model Boundary
 
-The reviewer console presents OpenAI as a visible, replaceable case-writing layer. Offline mode verifies deterministic truth and then stops visibly; a judge-provided OpenAI API key unlocks the complete bank-mismatch lifecycle.
+The reviewer console presents OpenAI as a visible, replaceable case-writing layer. A judge-provided OpenAI API key unlocks the complete live bank-mismatch lifecycle; no model selection or server configuration is required in the UI. The Truth Lane remains deterministic, only the Grounded Case Writer calls OpenAI, and the Human Decision lane remains authoritative.
 
-1. Open the [public demo](https://klear-decision-room.onrender.com) or `http://127.0.0.1:8787/` locally.
-2. Paste an OpenAI API key into the visible request-scoped connection panel. KLEAR uses the bundled model configuration; no model selection is required in the reviewer UI.
-3. Click **Connect & Run Live**. The Truth Layer remains deterministic, only the Grounded Case Writer calls the model, and the Human Decision lane remains authoritative.
-4. Watch the Case Writer state change from red `OpenAI not connected` to `OpenAI live`. The workflow lands back on the reviewer-first Overview; expand **Audit details** only when you want the validation receipt and deeper technical proof.
-
-The key is sent only from the browser to the API for that one request and cleared from the form after every attempt. It is not stored in `DecisionCase`, version snapshots, handoff artifacts, history, or any file under `storage/`. The public demo is bring-your-own-key and never carries a shared server-side key.
+The key is sent only from the browser to the API for that one request and cleared from the form after every attempt. It is not stored in `DecisionCase`, version snapshots, handoff artifacts, history, or any file under `storage/`. Offline mode verifies deterministic truth and then stops visibly rather than simulating a model response.
 
 If model output fails validation, KLEAR retries once with the validator's failure reasons. A second rejected output is never displayed as a live brief: the system stores a clearly labeled deterministic fallback with a `PASSED_WITH_FALLBACK` receipt and stops the live reviewer journey.
 
