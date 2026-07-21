@@ -112,14 +112,13 @@ function initializeIntro() {
   document.body.classList.add("intro-open");
 }
 
-function dismissIntro({ pulse = true } = {}) {
+function dismissIntro() {
   sessionStorage.setItem(INTRO_DISMISSED_KEY, "dismissed");
   introActive = false;
   el("intro-overlay").hidden = true;
   document.body.classList.remove("intro-open");
   demoRunnerPinned = false;
   el("demo-runner").hidden = true;
-  el("show-demo").classList.toggle("demo-cta-pulse", pulse);
   if (curatedHeroCaseId) selectCase(curatedHeroCaseId).catch((error) => writeRunway(error.message));
 }
 
@@ -189,7 +188,7 @@ function writeRunway(lines) {
 }
 
 function setRunwayBusy(isBusy, mode = "") {
-  for (const id of ["show-demo", "start-live-demo", "run-offline-demo", "compare-intakes", "import-packet", "run-review", "run-brief", "try-blocked-approve", "request-evidence", "import-demo-packback"]) {
+  for (const id of ["start-live-demo", "run-offline-demo", "compare-intakes", "import-packet", "run-review", "run-brief", "try-blocked-approve", "request-evidence", "import-demo-packback"]) {
     const button = el(id);
     if (button) button.disabled = isBusy;
   }
@@ -200,7 +199,7 @@ function setRunwayBusy(isBusy, mode = "") {
   const busyButtons = mode === "live"
     ? [liveSubmit]
     : mode === "offline"
-      ? [el("show-demo"), el("start-live-demo"), el("run-offline-demo")]
+      ? [el("start-live-demo"), el("run-offline-demo")]
       : [];
   if (isBusy) {
     busyButtons.filter(Boolean).forEach((button) => button.classList.add("is-busy"));
@@ -257,14 +256,6 @@ function setModelConnectionState(state, detail, tone = "disconnected") {
   lane.classList.add(tone);
   el("connection-state").textContent = state;
   el("connection-detail").textContent = detail;
-  const topbarState = el("topbar-model-state");
-  topbarState.textContent = tone === "connected"
-    ? "OpenAI live"
-    : tone === "connecting"
-      ? "Connecting..."
-      : state.includes("failed") || state.includes("rejected")
-        ? "Connection issue"
-        : "Connect OpenAI";
 }
 
 function sleep(ms) {
@@ -403,14 +394,11 @@ async function resetWorkspaceView() {
   el("runway-result").textContent = "Run offline to verify truth, or connect OpenAI to complete the live decision lifecycle.";
   clearProofSteps();
   setRunwayActivity("Ready to run.", "idle");
-  el("show-demo").classList.add("demo-cta-pulse");
   await loadCases({ selectFirst: false });
 }
 
 async function selectCase(caseId) {
   selectedCaseId = caseId;
-  el("start-live-demo").classList.remove("demo-cta-pulse");
-  el("show-demo").classList.remove("demo-cta-pulse");
   const { decision_story } = await api(`/cases/${caseId}/decision-story`);
   currentStory = decision_story;
   renderCase(decision_story);
@@ -720,12 +708,6 @@ el("intro-next").addEventListener("click", () => {
 });
 el("intro-continue").addEventListener("click", () => dismissIntro());
 el("skip-intro").addEventListener("click", () => dismissIntro());
-el("show-demo").addEventListener("click", () => {
-  demoRunnerPinned = true;
-  el("demo-runner").hidden = false;
-  el("show-demo").classList.remove("demo-cta-pulse");
-  el("demo-runner").scrollIntoView({ behavior: "smooth", block: "start" });
-});
 el("hide-demo").addEventListener("click", () => {
   demoRunnerPinned = false;
   el("demo-runner").hidden = Boolean(selectedCaseId);
@@ -739,8 +721,6 @@ async function runBankMismatchDemo({ credentials = null } = {}) {
   const usingLiveModel = Boolean(credentials?.api_key);
   el("demo-runner").hidden = true;
   revealDemoStage();
-  el("start-live-demo").classList.remove("demo-cta-pulse");
-  el("show-demo").classList.remove("demo-cta-pulse");
   setRunwayBusy(true, usingLiveModel ? "live" : "offline");
   clearProofSteps();
   const lines = [
@@ -1001,15 +981,6 @@ function clearLiveModelApiKey(form = el("case-brief-form")) {
   liveModelCredentials = { ...liveModelCredentials, api_key: "" };
   form.api_key.value = "";
 }
-
-async function openLiveModelSetup() {
-  el("model-connection").scrollIntoView({ behavior: "smooth", block: "start" });
-  requestAnimationFrame(() => el("case-brief-form").api_key.focus());
-}
-
-el("show-live-model").addEventListener("click", () => {
-  openLiveModelSetup().catch((error) => writeRunway(error.message));
-});
 
 el("clear-model-key").addEventListener("click", () => clearLiveModelApiKey());
 

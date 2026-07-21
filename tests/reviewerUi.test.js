@@ -13,8 +13,6 @@ test("static reviewer UI exposes Phase 4 operational panels", async () => {
     "Ready to run.",
     "Check the case in detail. Prepare the evidence. Hand it to a human to decide.",
     "KLEAR verifies what is known, preserves what is unknown, and never owns the decision.",
-    "Run Demo",
-    "Connect OpenAI",
     "Connect OpenAI to complete the live workflow.",
     "The decision engine is KLEAR. OpenAI is connected only for the grounded case-writing lane.",
     "Truth Layer",
@@ -69,7 +67,8 @@ test("static reviewer UI exposes Phase 4 operational panels", async () => {
   assert.ok(js.includes("klear-handoff/v1"));
   assert.ok(js.includes("openArtifact"));
   assert.ok(js.includes("Unnamed vendor (see intake)"));
-  assert.ok(js.includes("demo-cta-pulse"));
+  assert.ok(!html.includes("id=\"show-demo\""));
+  assert.ok(!html.includes("id=\"show-live-model\""));
   assert.ok(js.includes("resetWorkspaceView"));
   assert.ok(js.includes("loadCases({ selectFirst: false })"));
   assert.ok(js.includes("INTRO_DISMISSED_KEY"));
