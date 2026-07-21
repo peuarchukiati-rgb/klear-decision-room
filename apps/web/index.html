@@ -54,6 +54,31 @@
     </header>
 
     <main class="workspace">
+      <section id="model-connection" class="model-connection" aria-labelledby="model-connection-title">
+        <div class="connection-summary">
+          <span class="eyebrow">Replaceable model layer</span>
+          <h2 id="model-connection-title">Connect OpenAI to complete the live workflow.</h2>
+          <p>The decision engine is KLEAR. OpenAI is connected only for the grounded case-writing lane.</p>
+        </div>
+        <div class="lane-boundaries" aria-label="Decision lane boundaries">
+          <div class="lane-state"><span>Truth Layer</span><strong>Deterministic</strong><small>No model call</small></div>
+          <div class="lane-state case-writer-lane disconnected"><span>Case Writer</span><strong id="connection-state">OpenAI not connected</strong><small id="connection-detail">Live case writer unavailable</small></div>
+          <div class="lane-state human-lane"><span>Human Decision</span><strong>Human only</strong><small>Authoritative</small></div>
+        </div>
+        <form id="case-brief-form" class="model-connection-form">
+          <label>OpenAI API Key
+            <input name="api_key" type="password" autocomplete="off" placeholder="Request-scoped API key" aria-describedby="model-security-note" required>
+          </label>
+          <div class="connection-actions">
+            <button type="submit" class="primary-action">Connect &amp; Run Live</button>
+            <button type="button" id="run-offline-demo">Run Offline Demo</button>
+            <button type="button" id="clear-model-key" class="quiet-button">Clear Key</button>
+          </div>
+          <p id="model-security-note" class="model-security-note">Sent only for the case-writer request, cleared after every attempt, and never stored in case data, history, or handoff.</p>
+          <p id="case-brief-result" class="connection-result error" aria-live="polite">Offline can verify truth, but cannot complete the live decision journey.</p>
+        </form>
+      </section>
+
       <section id="demo-runner" class="demo-runner" aria-label="Guided demo">
         <div class="demo-prompt">
           <span class="eyebrow">Guided review</span>
@@ -93,10 +118,10 @@
           <span class="step">Human decision recorded</span>
           <span class="step">Handoff acknowledged, evidence pending</span>
         </div>
-        <details class="proof-log">
-          <summary>Technical run log</summary>
+        <section class="proof-log" aria-labelledby="technical-log-title">
+          <span id="technical-log-title" class="section-label">Technical run log</span>
           <pre id="runway-result">Run offline to verify truth, or connect OpenAI to complete the live decision lifecycle.</pre>
-        </details>
+        </section>
 
         <details class="manual-demo">
           <summary>Manual scenario controls</summary>
@@ -315,36 +340,6 @@
         </section>
       </div>
     </main>
-
-    <dialog id="model-dialog" class="model-dialog">
-      <div id="model-connection" class="model-connection" aria-labelledby="model-connection-title">
-        <header class="model-dialog-head">
-          <div>
-            <span class="eyebrow">Replaceable model layer</span>
-            <h2 id="model-connection-title">Connect OpenAI for the grounded case writer</h2>
-            <p>The truth layer remains deterministic. Human decision authority remains separate.</p>
-          </div>
-          <button id="close-model-dialog" class="quiet-button" aria-label="Close model connection">Close</button>
-        </header>
-        <div class="lane-boundaries" aria-label="Decision lane boundaries">
-          <div class="lane-state"><span>Truth Layer</span><strong>Deterministic</strong><small>No model call</small></div>
-          <div class="lane-state case-writer-lane disconnected"><span>Case Writer</span><strong id="connection-state">OpenAI not connected</strong><small id="connection-detail">Live case writer unavailable</small></div>
-          <div class="lane-state human-lane"><span>Human Decision</span><strong>Human only</strong><small>Authoritative</small></div>
-        </div>
-        <form id="case-brief-form" class="model-connection-form">
-          <label>OpenAI API Key
-            <input name="api_key" type="password" autocomplete="off" placeholder="Request-scoped API key" aria-describedby="model-security-note" required>
-          </label>
-          <div class="connection-actions">
-            <button type="submit" class="primary-action">Connect &amp; Run Live</button>
-            <button type="button" id="run-offline-demo">Run Offline Demo</button>
-            <button type="button" id="clear-model-key" class="quiet-button">Clear Key</button>
-          </div>
-          <p id="model-security-note" class="model-security-note">Sent only for the case-writer request, cleared after every attempt, and never stored in case data, history, or handoff.</p>
-          <p id="case-brief-result" class="connection-result error" aria-live="polite">Offline can verify truth, but cannot complete the live decision journey.</p>
-        </form>
-      </div>
-    </dialog>
 
     <dialog id="artifact-dialog" class="artifact-dialog">
       <div class="artifact-dialog-shell">

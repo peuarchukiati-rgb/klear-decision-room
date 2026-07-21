@@ -81,7 +81,7 @@ Phase 4 exposes derived judge-facing intelligence without changing that source-o
 ## Walkthrough
 
 1. Open the reviewer console. The default Living Decision Folder shows the current finding, cited evidence, prepared recommendation, and next human action without exposing the technical layers all at once.
-2. Open **Connect OpenAI**, provide a request-scoped API key, and click **Connect & Run Live** to prepare the grounded brief, block unsafe approval, record a human evidence request, and receive handoff acknowledgement while evidence remains pending.
+2. Paste a request-scoped OpenAI API key into the visible connection panel and click **Connect & Run Live** to prepare the grounded brief, block unsafe approval, record a human evidence request, and receive handoff acknowledgement while evidence remains pending.
 3. Inspect the bank-account comparison and `HOLD` recommendation, then open the portable handoff or expand **Audit details** for readiness, validation, files, normalized facts, and rule results.
 4. Use **Compare Good vs Messy Intake** to see clean structured input become decision-ready while messy input preserves unknowns instead of guessing.
 
@@ -117,7 +117,7 @@ curl http://127.0.0.1:8787/cases/$CASE_ID/timeline
 curl http://127.0.0.1:8787/cases/$CASE_ID/decision-story
 ```
 
-The reviewer console provides two judge paths: **Run Demo** reveals the guided offline proof, while **Connect OpenAI** opens the request-scoped live path. During a run, the six-step proof tray remains visible while its technical log stays collapsed by default. Manual scenario controls remain available under the demo stage for choosing a specific intake packet.
+The reviewer console provides two judge paths: **Run Demo** reveals the guided offline proof, while the visible OpenAI key panel starts the request-scoped live path. During a run, both the six-step proof tray and its technical log stay visible so a judge can follow the system without opening another layer. Manual scenario controls remain available under the demo stage for choosing a specific intake packet.
 
 ## API
 
@@ -183,7 +183,7 @@ The bundled model selection starts with `gpt-5.6` in `config/model.json`. If the
 The reviewer console presents OpenAI as a visible, replaceable case-writing layer. Offline mode verifies deterministic truth and then stops visibly; a judge-provided OpenAI API key unlocks the complete bank-mismatch lifecycle.
 
 1. Open the [public demo](https://klear-decision-room.onrender.com) or `http://127.0.0.1:8787/` locally.
-2. Click **Connect OpenAI** and paste an OpenAI API key into the request-scoped connection dialog. KLEAR uses the bundled model configuration; no model selection is required in the reviewer UI.
+2. Paste an OpenAI API key into the visible request-scoped connection panel. KLEAR uses the bundled model configuration; no model selection is required in the reviewer UI.
 3. Click **Connect & Run Live**. The Truth Layer remains deterministic, only the Grounded Case Writer calls the model, and the Human Decision lane remains authoritative.
 4. Watch the Case Writer state change from red `OpenAI not connected` to `OpenAI live`. The workflow lands back on the reviewer-first Overview; expand **Audit details** only when you want the validation receipt and deeper technical proof.
 

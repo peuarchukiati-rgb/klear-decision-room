@@ -327,41 +327,14 @@ h3 {
   min-height: calc(100vh - 64px);
 }
 
-.model-dialog {
-  width: min(760px, calc(100vw - 32px));
-  max-height: calc(100vh - 40px);
-  padding: 0;
-  border: 1px solid #c7cec9;
-  border-radius: 8px;
-  background: #f8faf8;
-  box-shadow: 0 24px 70px rgba(23, 32, 29, 0.28);
-}
-
-.model-dialog::backdrop {
-  background: rgba(28, 36, 33, 0.48);
-}
-
 .model-connection {
   display: grid;
-  gap: 18px;
-  padding: 22px;
-}
-
-.model-dialog-head {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
+  grid-template-columns: minmax(230px, 0.8fr) minmax(330px, 1.1fr) minmax(420px, 1.45fr);
+  align-items: center;
   gap: 20px;
-}
-
-.model-dialog-head h2 {
-  margin: 4px 0 5px;
-}
-
-.model-dialog-head p {
-  margin: 0;
-  color: var(--muted);
-  font-size: 12px;
+  padding: 18px 22px;
+  border-bottom: 1px solid #bfc9c2;
+  background: #f8faf8;
 }
 
 .connection-summary h2 {
@@ -446,6 +419,8 @@ h3 {
   grid-template-columns: minmax(220px, 1fr);
   align-items: end;
   gap: 9px 10px;
+  padding-left: 20px;
+  border-left: 1px solid var(--line);
 }
 
 .connection-actions {
@@ -756,14 +731,8 @@ button.is-busy::before {
   padding-top: 8px;
 }
 
-.proof-log summary {
-  cursor: pointer;
-  color: var(--muted);
-  font-size: 11px;
-  font-weight: 650;
-}
-
-.proof-log[open] summary {
+.proof-log > .section-label {
+  display: block;
   margin-bottom: 8px;
 }
 
@@ -1633,6 +1602,16 @@ pre {
 }
 
 @media (max-width: 1040px) {
+  .model-connection {
+    grid-template-columns: minmax(220px, 0.7fr) minmax(0, 1.3fr);
+  }
+
+  .model-connection-form {
+    grid-column: 1 / -1;
+    padding-left: 0;
+    border-left: 0;
+  }
+
   .review-focus-grid {
     grid-template-columns: minmax(0, 1fr) minmax(280px, 0.8fr);
   }
@@ -1656,6 +1635,15 @@ pre {
   .demo-runner {
     flex-direction: column;
     gap: 12px;
+  }
+
+  .model-connection {
+    grid-template-columns: 1fr;
+  }
+
+  .model-connection-form {
+    grid-column: auto;
+    grid-template-columns: 1fr 1fr;
   }
 
   .demo-prompt {
@@ -1715,6 +1703,7 @@ pre {
   }
 
   .topbar,
+  .model-connection,
   .demo-runner,
   .demo-stage {
     padding-left: 14px;
@@ -1806,11 +1795,6 @@ pre {
   }
 
   .artifact-dialog {
-    width: calc(100vw - 16px);
-    max-height: calc(100vh - 16px);
-  }
-
-  .model-dialog {
     width: calc(100vw - 16px);
     max-height: calc(100vh - 16px);
   }

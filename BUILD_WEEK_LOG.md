@@ -58,3 +58,4 @@
 - Sanitized OpenAI provider errors before they reach the reviewer UI; project identifiers and raw upstream response bodies are never displayed or persisted.
 - Added reviewer-first progressive disclosure before recording: model setup now opens in a focused dialog, the live proof log is collapsed by default, and the Overview leads with the blocking finding, cited evidence comparison, grounded disposition, and next human action.
 - Consolidated readiness, model validation, portable files, normalized facts, unknowns, and full rule results under one reproducible `Audit details` layer without changing DecisionCase state or lane boundaries.
+- Restored the OpenAI key panel and Technical run log as always-visible action/proof surfaces after hands-on review; deeper case intelligence remains progressively disclosed under the reviewer-first workspace.

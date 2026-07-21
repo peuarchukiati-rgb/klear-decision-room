@@ -879,7 +879,6 @@ async function runBankMismatchDemo({ credentials = null } = {}) {
 
 el("start-live-demo").addEventListener("click", () => runBankMismatchDemo());
 el("run-offline-demo").addEventListener("click", () => {
-  if (el("model-dialog").open) el("model-dialog").close();
   runBankMismatchDemo();
 });
 
@@ -1004,16 +1003,13 @@ function clearLiveModelApiKey(form = el("case-brief-form")) {
 }
 
 async function openLiveModelSetup() {
-  const dialog = el("model-dialog");
-  if (!dialog.open) dialog.showModal();
+  el("model-connection").scrollIntoView({ behavior: "smooth", block: "start" });
   requestAnimationFrame(() => el("case-brief-form").api_key.focus());
 }
 
 el("show-live-model").addEventListener("click", () => {
   openLiveModelSetup().catch((error) => writeRunway(error.message));
 });
-
-el("close-model-dialog").addEventListener("click", () => el("model-dialog").close());
 
 el("clear-model-key").addEventListener("click", () => clearLiveModelApiKey());
 
@@ -1027,7 +1023,6 @@ el("case-brief-form").addEventListener("submit", async (event) => {
   el("case-brief-result").textContent = "Running the same decision workflow with a live case writer.";
   el("case-brief-result").classList.remove("error");
   try {
-    el("model-dialog").close();
     await runBankMismatchDemo({ credentials: { ...liveModelCredentials } });
   } finally {
     clearLiveModelApiKey(form);
