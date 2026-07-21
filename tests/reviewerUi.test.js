@@ -89,7 +89,7 @@ test("static reviewer UI exposes Phase 4 operational panels", async () => {
   assert.ok(css.includes(".runway-activity.active"));
   assert.ok(css.includes(".step.active"));
   assert.ok(css.includes("button.is-busy"));
-  assert.ok(html.includes("Request-scoped API key"));
+  assert.ok(html.includes("Paste your OpenAI API key"));
   assert.ok(!html.includes("name=\"model_id\""));
   assert.ok(html.includes("<section id=\"model-connection\""));
   assert.ok(!html.includes("id=\"model-dialog\""));

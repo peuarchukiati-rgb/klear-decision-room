@@ -67,7 +67,7 @@ curl -X POST http://127.0.0.1:8787/cases/$CASE_ID/case-brief
 
 4. Refresh the reviewer console.
 5. Inspect normalized facts, readiness, rule results, unknowns, traceability, and Decision Timeline.
-6. For the judge-facing live beat, paste only an OpenAI API key into the visible request-scoped panel and click **Connect & Run Live**. KLEAR tries the bundled GPT-5.6 primary first and automatically selects the next configured compatible model only when that API project lacks access; the red `OpenAI not connected` lane should change to `OpenAI live`.
+6. For the judge-facing live beat, paste a normal OpenAI API key into the visible connection panel and click **Connect & Run Live**. KLEAR uses the key only for that run, tries the bundled GPT-5.6 primary first, and automatically selects the next configured compatible model only when that API project lacks access; the red `OpenAI not connected` lane should change to `OpenAI live`.
 7. Expand **Audit details** and point to the **Validation receipt** only after the reviewer outcome is clear. It must show that structured output, evidence citations, rule citations, recommendation gates, and human authority passed before display, plus whether a compatibility model was selected automatically.
 8. Submit `REQUEST_EVIDENCE` with reviewer identity, reason, and required evidence.
 9. Open the Handoff view and inspect Markdown plus JSON. Point out:

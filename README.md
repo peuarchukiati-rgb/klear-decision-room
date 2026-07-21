@@ -34,7 +34,7 @@ No clone, installation, environment file, model selection, or test account is re
 4. Watch KLEAR verify the bank mismatch, prepare a grounded OpenAI brief, block unsafe approval, record the reviewer's evidence request, and generate the versioned Decision Handoff.
 5. Inspect the bank-account evidence and `HOLD` recommendation, then open the handoff or deeper audit details.
 
-The key is request-scoped: it is sent only for the case-writer request, cleared from the form after the attempt, and never stored in case data, versions, history, or handoff artifacts. The public deployment contains no shared OpenAI key.
+This is a normal OpenAI API key. KLEAR uses it only for this live run, clears it from the form after the attempt, and never stores it in case data, versions, history, or handoff artifacts. The public deployment contains no shared OpenAI key.
 
 ## The Decision
 
@@ -162,9 +162,9 @@ https://dashboard.render.com/blueprint/new?repo=https://github.com/peuarchukiati
 
 The hosted start command seeds the four-case rehearsal queue before starting the API. Render free services use an ephemeral filesystem, so the public demo intentionally resets to that known queue after a restart, redeploy, or idle spin-down. This is a judge-preview boundary, not production persistence.
 
-The bundled model selection starts with `gpt-5.6` in `config/model.json`. If the supplied API project cannot access it, KLEAR tries the configured compatibility order (`gpt-5.6-terra`, `gpt-5.6-luna`, then `gpt-4o-mini`) and records whether a compatibility model was selected. A deployment may replace the primary model with `KLEAR_MODEL_ID` and control the ordered fallback list with `KLEAR_MODEL_FALLBACK_IDS`, without changing application source or exposing model selection in the reviewer UI. Do not configure a shared OpenAI key on the public host; judges provide only their own request-scoped key through the reviewer console.
+The bundled model selection starts with `gpt-5.6` in `config/model.json`. If the supplied API project cannot access it, KLEAR tries the configured compatibility order (`gpt-5.6-terra`, `gpt-5.6-luna`, then `gpt-4o-mini`) and records whether a compatibility model was selected. A deployment may replace the primary model with `KLEAR_MODEL_ID` and control the ordered fallback list with `KLEAR_MODEL_FALLBACK_IDS`, without changing application source or exposing model selection in the reviewer UI. Do not configure a shared OpenAI key on the public host; judges provide their own OpenAI API key through the reviewer console.
 
-## Request-Scoped Model Boundary
+## Live OpenAI Connection
 
 The reviewer console presents OpenAI as a visible, replaceable case-writing layer. A judge-provided OpenAI API key unlocks the complete live bank-mismatch lifecycle; no model selection or server configuration is required in the UI. The Truth Lane remains deterministic, only the Grounded Case Writer calls OpenAI, and the Human Decision lane remains authoritative.
 

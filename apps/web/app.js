@@ -1019,7 +1019,7 @@ el("case-brief-form").addEventListener("submit", async (event) => {
   liveModelCredentials = {
     api_key: form.api_key.value
   };
-  setModelConnectionState("Connecting to OpenAI...", "Request-scoped API key", "connecting");
+  setModelConnectionState("Connecting to OpenAI...", "Using your key only for this live run", "connecting");
   el("case-brief-result").textContent = "Running the same decision workflow with a live case writer.";
   el("case-brief-result").classList.remove("error");
   try {

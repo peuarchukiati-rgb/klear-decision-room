@@ -67,14 +67,14 @@
         </div>
         <form id="case-brief-form" class="model-connection-form">
           <label>OpenAI API Key
-            <input name="api_key" type="password" autocomplete="off" placeholder="Request-scoped API key" aria-describedby="model-security-note" required>
+            <input name="api_key" type="password" autocomplete="off" placeholder="Paste your OpenAI API key" aria-describedby="model-security-note" required>
           </label>
           <div class="connection-actions">
             <button type="submit" class="primary-action">Connect &amp; Run Live</button>
             <button type="button" id="run-offline-demo">Run Offline Demo</button>
             <button type="button" id="clear-model-key" class="quiet-button">Clear Key</button>
           </div>
-          <p id="model-security-note" class="model-security-note">Sent only for the case-writer request, cleared after every attempt, and never stored in case data, history, or handoff.</p>
+          <p id="model-security-note" class="model-security-note">Used only for this live run, cleared after the attempt, and never stored in case data, history, or handoff.</p>
           <p id="case-brief-result" class="connection-result error" aria-live="polite">Offline can verify truth, but cannot complete the live decision journey.</p>
         </form>
       </section>
